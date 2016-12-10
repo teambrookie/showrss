@@ -18,7 +18,7 @@ import (
 const version = "1.0.0"
 
 func main() {
-	var httpAddr = flag.String("http", "localhost:7000", "HTTP service address")
+	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
 	flag.Parse()
 
 	log.Println("Starting server ...")
@@ -27,7 +27,7 @@ func main() {
 	errChan := make(chan error, 10)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlers.EpisodeHandler)
+	mux.HandleFunc("/", handlers.HelloHandler)
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr
 	httpServer.Handler = handlers.LoggingHandler(mux)
