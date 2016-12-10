@@ -3,12 +3,12 @@ package handlers
 import "net/http"
 import "encoding/json"
 
-type EpisodeResponse struct {
+type HelloResponse struct {
 	Message string `json:"message"`
 }
 
-func EpisodeHandler(w http.ResponseWriter, r *http.Request) {
-	response := EpisodeResponse{
+func HelloHandler(w http.ResponseWriter, r *http.Request) {
+	response := HelloResponse{
 		Message: "Hello",
 	}
 	json.NewEncoder(w).Encode(response)
