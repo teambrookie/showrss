@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"showrss/dao"
 	"showrss/handlers"
 
 	"flag"
@@ -19,17 +20,31 @@ const version = "1.0.0"
 
 func main() {
 	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
+	var dbAddr = flag.String("db", "showrss.db", "DB address")
 	flag.Parse()
 
 	log.Println("Starting server ...")
 	log.Printf("HTTP service listening on %s", *httpAddr)
+	log.Println("Connecting to db ...")
+
+	//DB stuff
+	db, err := dao.InitDB(*dbAddr)
+	if err != nil {
+		log.Fatalln("Error connecting to DB")
+	}
+
+	err = db.CreateBucket("episodes")
+	if err != nil {
+		log.Fatalln("Error when creating bucket")
+	}
 
 	errChan := make(chan error, 10)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.HandleFunc("/betaseries/auth", handlers.AuthHandler)
-	mux.HandleFunc("/betaseries/episodes", handlers.EpisodesHandler)
+	mux.Handle("/betaseries/episodes", handlers.BetaseriesEpisodeHandler(db))
+	mux.Handle("/episodes", handlers.DBEpisodeHandler(db))
 
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr
