@@ -28,6 +28,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
+	mux.HandleFunc("/betaseries/auth", handlers.AuthHandler)
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr
 	httpServer.Handler = handlers.LoggingHandler(mux)
