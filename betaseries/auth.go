@@ -23,7 +23,7 @@ type betaseriesAuthResp struct {
 func init() {
 	apiKey = os.Getenv("BETASERIES_KEY")
 	if apiKey == "" {
-		log.Fatalln("Cannot find env BETASERIES_KEY")
+		log.Fatalln("BETASERIES_KEY must be set in env")
 	}
 }
 

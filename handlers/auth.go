@@ -28,5 +28,7 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 		Username: username,
 		Token:    token,
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+	return
 }

@@ -29,6 +29,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.HandleFunc("/betaseries/auth", handlers.AuthHandler)
+	mux.HandleFunc("/betaseries/episodes", handlers.EpisodesHandler)
+
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr
 	httpServer.Handler = handlers.LoggingHandler(mux)
