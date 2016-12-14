@@ -42,8 +42,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
-	mux.HandleFunc("/betaseries/auth", handlers.AuthHandler)
-	mux.Handle("/betaseries/episodes", handlers.BetaseriesEpisodeHandler(db))
+	mux.HandleFunc("/auth", handlers.AuthHandler)
+	mux.Handle("/refresh", handlers.RefreshHandler(db))
 	mux.Handle("/episodes", handlers.DBEpisodeHandler(db))
 
 	httpServer := manners.NewServer()

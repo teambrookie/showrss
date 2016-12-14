@@ -79,3 +79,21 @@ func (db *DB) GetAllEpisode() ([]Episode, error) {
 	})
 	return episodes, err
 }
+
+func (db *DB) GetAllNotFoundEpisode() ([]Episode, error) {
+	var episodes []Episode
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("episodes"))
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			var episode Episode
+			json.Unmarshal(v, &episode)
+			if episode.MagnetLink == "" {
+				episodes = append(episodes, episode)
+			}
+
+		}
+		return nil
+	})
+	return episodes, err
+}
