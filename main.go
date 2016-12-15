@@ -70,6 +70,7 @@ func main() {
 	mux.HandleFunc("/auth", handlers.AuthHandler)
 	mux.Handle("/refresh", handlers.RefreshHandler(db, jobs))
 	mux.Handle("/episodes", handlers.EpisodeHandler(db))
+	mux.Handle("/rss", handlers.RSSHandler(db))
 
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr
