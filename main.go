@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"showrss/dao"
 	"showrss/handlers"
+	"showrss/torrent"
+	"time"
 
 	"flag"
 
@@ -17,6 +19,24 @@ import (
 )
 
 const version = "1.0.0"
+
+func worker(jobs <-chan dao.Episode, db *dao.DB) {
+	for episode := range jobs {
+		log.Println("Processing : " + episode.Name)
+		torrentLink, err := torrent.Search(episode.Name)
+		log.Println("Result : " + torrentLink)
+		if err != nil {
+			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
+			continue
+		}
+		episode.MagnetLink = torrentLink
+		err = db.AddEpisode(episode)
+		if err != nil {
+			log.Printf("Error saving %s to DB ...\n", episode.Name)
+		}
+		time.Sleep(2 * time.Second)
+	}
+}
 
 func main() {
 	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
@@ -38,13 +58,18 @@ func main() {
 		log.Fatalln("Error when creating bucket")
 	}
 
+	// Worker stuff
+	log.Println("Starting worker ...")
+	jobs := make(chan dao.Episode, 100)
+	go worker(jobs, db)
+
 	errChan := make(chan error, 10)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.HandleFunc("/auth", handlers.AuthHandler)
-	mux.Handle("/refresh", handlers.RefreshHandler(db))
-	mux.Handle("/episodes", handlers.DBEpisodeHandler(db))
+	mux.Handle("/refresh", handlers.RefreshHandler(db, jobs))
+	mux.Handle("/episodes", handlers.EpisodeHandler(db))
 
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr

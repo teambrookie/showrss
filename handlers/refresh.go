@@ -5,13 +5,13 @@ import (
 	"log"
 	"net/http"
 	"showrss/betaseries"
-	"showrss/torrent"
 
 	"showrss/dao"
 )
 
 type refreshHandler struct {
-	db *dao.DB
+	db   *dao.DB
+	jobs chan dao.Episode
 }
 
 func (h *refreshHandler) saveAllEpisode(episodes []string) error {
@@ -61,21 +61,10 @@ func (h *refreshHandler) refreshTorrent(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	for _, episode := range notFounds {
-		torrentLink, err := torrent.Search(episode.Name)
-		if err != nil {
-			log.Println(err)
-		}
-		episode.MagnetLink = torrentLink
-		h.db.AddEpisode(episode)
+		h.jobs <- episode
 	}
 
-	episodes, err := h.db.GetAllEpisode()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(episodes)
+	w.WriteHeader(http.StatusOK)
 	return
 }
 
@@ -99,8 +88,9 @@ func (h *refreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RefreshHandler(db *dao.DB) http.Handler {
+func RefreshHandler(db *dao.DB, jobs chan dao.Episode) http.Handler {
 	return &refreshHandler{
-		db: db,
+		db:   db,
+		jobs: jobs,
 	}
 }
