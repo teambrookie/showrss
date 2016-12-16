@@ -21,7 +21,7 @@ func Search(name string) (string, error) {
 	api.SearchString(searchName)
 	results, err := api.Search()
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	if len(results) == 0 {

@@ -29,6 +29,9 @@ func worker(jobs <-chan dao.Episode, db *dao.DB) {
 			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
 			continue
 		}
+		if torrentLink == "" {
+			continue
+		}
 		episode.MagnetLink = torrentLink
 		err = db.AddEpisode(episode)
 		if err != nil {
