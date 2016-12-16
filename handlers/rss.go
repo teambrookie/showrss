@@ -5,6 +5,8 @@ import (
 	"showrss/dao"
 	"time"
 
+	"showrss/betaseries"
+
 	"github.com/gorilla/feeds"
 )
 
@@ -13,6 +15,12 @@ type rssHandler struct {
 }
 
 func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "token must be set in query params", http.StatusNotAcceptable)
+		return
+	}
+
 	now := time.Now()
 	feed := &feeds.Feed{
 		Title:       "ShowRSS by binou",
@@ -21,18 +29,19 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Author:      &feeds.Author{Name: "Fabien Foerster", Email: "fabienfoerster@gmail.com"},
 		Created:     now,
 	}
-	episodes, err := h.db.GetAllEpisode()
+	episodes, err := betaseries.Episodes(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	for _, ep := range episodes {
-		if ep.MagnetLink == "" {
+		episode, err := h.db.GetEpisode(ep)
+		if episode.MagnetLink == "" || err != nil {
 			continue
 		}
 		item := &feeds.Item{
-			Title:       ep.Name,
-			Link:        &feeds.Link{Href: ep.MagnetLink},
-			Description: ep.Name,
+			Title:       episode.Name,
+			Link:        &feeds.Link{Href: episode.MagnetLink},
+			Description: episode.Name,
 		}
 		feed.Add(item)
 	}
