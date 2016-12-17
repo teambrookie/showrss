@@ -20,7 +20,7 @@ func Search(episode dao.Episode) (string, error) {
 	}
 	api.Format("json_extended")
 	api.SearchTVDB(strconv.Itoa(episode.ShowID))
-	api.SearchString(episode.Code)
+	api.SearchString(episode.Code + " 720p")
 	results, err := api.Search()
 	if err != nil {
 		return "", err
