@@ -22,8 +22,9 @@ const version = "1.0.0"
 
 func worker(jobs <-chan dao.Episode, db *dao.DB) {
 	for episode := range jobs {
+		time.Sleep(2 * time.Second)
 		log.Println("Processing : " + episode.Name)
-		torrentLink, err := torrent.Search(episode.Name)
+		torrentLink, err := torrent.Search(episode)
 		log.Println("Result : " + torrentLink)
 		if err != nil {
 			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
@@ -37,7 +38,7 @@ func worker(jobs <-chan dao.Episode, db *dao.DB) {
 		if err != nil {
 			log.Printf("Error saving %s to DB ...\n", episode.Name)
 		}
-		time.Sleep(2 * time.Second)
+
 	}
 }
 

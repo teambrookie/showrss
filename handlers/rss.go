@@ -34,7 +34,7 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	for _, ep := range episodes {
-		episode, err := h.db.GetEpisode(ep)
+		episode, err := h.db.GetEpisode(ep.Name)
 		if episode.MagnetLink == "" || err != nil {
 			continue
 		}

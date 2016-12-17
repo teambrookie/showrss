@@ -13,12 +13,9 @@ type refreshHandler struct {
 	jobs chan dao.Episode
 }
 
-func (h *refreshHandler) saveAllEpisode(episodes []string) error {
+func (h *refreshHandler) saveAllEpisode(episodes []dao.Episode) error {
 	for _, ep := range episodes {
-		episode := dao.Episode{
-			Name: ep,
-		}
-		err := h.db.AddEpisode(episode)
+		err := h.db.AddEpisode(ep)
 		if err != nil {
 			return err
 		}

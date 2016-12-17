@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"showrss/dao"
 )
 
 func init() {
@@ -18,13 +19,15 @@ func init() {
 type betaseriesEpisodesResponse struct {
 	Shows []struct {
 		Unseen []struct {
-			ID      int    `json:"id"`
-			Title   string `json:"title"`
-			Season  int    `json:"season"`
-			Episode int    `json:"episode"`
-			Show    struct {
-				ID    int    `json:"id"`
-				Title string `json:"title"`
+			ID        int    `json:"id"`
+			TheTVDBID int    `json:"thetvdb_id"`
+			Title     string `json:"title"`
+			Season    int    `json:"season"`
+			Episode   int    `json:"episode"`
+			Show      struct {
+				ID        int    `json:"id"`
+				TheTVDBID int    `json:"thetvdb_id"`
+				Title     string `json:"title"`
 			} `json:"show"`
 			Code string `json:"code"`
 		} `json:"unseen"`
@@ -32,11 +35,14 @@ type betaseriesEpisodesResponse struct {
 	Errors []interface{} `json:"errors"`
 }
 
-func transformResponse(resp betaseriesEpisodesResponse) []string {
-	var episodes []string
+func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
+	var episodes []dao.Episode
 	for _, show := range resp.Shows {
 		for _, unseen := range show.Unseen {
-			episode := fmt.Sprintf("%s S%02dE%02d", unseen.Show.Title, unseen.Season, unseen.Episode)
+			episode := dao.Episode{}
+			episode.Name = fmt.Sprintf("%s S%02dE%02d", unseen.Show.Title, unseen.Season, unseen.Episode)
+			episode.Code = unseen.Code
+			episode.ShowID = unseen.Show.TheTVDBID
 			episodes = append(episodes, episode)
 		}
 
@@ -45,7 +51,7 @@ func transformResponse(resp betaseriesEpisodesResponse) []string {
 }
 
 //Episodes retrieve your unseen episode from betaseries
-func Episodes(token string) ([]string, error) {
+func Episodes(token string) ([]dao.Episode, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.betaseries.com/episodes/list", nil)
 	if err != nil {
