@@ -34,6 +34,7 @@ func worker(jobs <-chan dao.Episode, db *dao.DB) {
 			continue
 		}
 		episode.MagnetLink = torrentLink
+		episode.LastModified = time.Now()
 		err = db.AddEpisode(episode)
 		if err != nil {
 			log.Printf("Error saving %s to DB ...\n", episode.Name)

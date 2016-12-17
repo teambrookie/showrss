@@ -42,6 +42,7 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Title:       episode.Name,
 			Link:        &feeds.Link{Href: episode.MagnetLink},
 			Description: episode.Name,
+			Created:     episode.LastModified,
 		}
 		feed.Add(item)
 	}
