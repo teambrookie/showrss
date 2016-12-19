@@ -51,6 +51,22 @@ func (db *DB) GetEpisode(name string) (Episode, error) {
 
 func (db *DB) AddEpisode(ep Episode) error {
 	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("episodes"))
+		if v := b.Get([]byte(ep.Name)); v != nil {
+			return nil
+		}
+		encoded, err := json.Marshal(ep)
+		if err != nil {
+			return err
+		}
+
+		return b.Put([]byte(ep.Name), encoded)
+	})
+	return err
+}
+
+func (db *DB) UpdateEpisode(ep Episode) error {
+	err := db.Update(func(tx *bolt.Tx) error {
 		encoded, err := json.Marshal(ep)
 		if err != nil {
 			return err
