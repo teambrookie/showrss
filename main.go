@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/fabienfoerster/showrss/betaseries"
-	"github.com/fabienfoerster/showrss/dao"
-	"github.com/fabienfoerster/showrss/handlers"
-	"github.com/fabienfoerster/showrss/torrent"
+	"github.com/teambrookie/showrss/betaseries"
+	"github.com/teambrookie/showrss/dao"
+	"github.com/teambrookie/showrss/handlers"
+	"github.com/teambrookie/showrss/torrent"
 
 	"flag"
 

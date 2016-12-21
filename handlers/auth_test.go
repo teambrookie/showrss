@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/fabienfoerster/showrss/dao"
+	"github.com/teambrookie/showrss/dao"
 )
 
 type FakeUser struct {

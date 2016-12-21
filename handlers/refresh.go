@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fabienfoerster/showrss/betaseries"
-	"github.com/fabienfoerster/showrss/dao"
+	"github.com/teambrookie/showrss/betaseries"
+	"github.com/teambrookie/showrss/dao"
 )
 
 type refreshHandler struct {

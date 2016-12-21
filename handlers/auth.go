@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/fabienfoerster/showrss/betaseries"
+	"github.com/teambrookie/showrss/betaseries"
 )
 
 type AuthResponse struct {

@@ -1,7 +1,7 @@
 package torrent
 
 import torrentapi "github.com/qopher/go-torrentapi"
-import "github.com/fabienfoerster/showrss/dao"
+import "github.com/teambrookie/showrss/dao"
 import "strconv"
 
 func goodEnoughTorrent(results torrentapi.TorrentResults) string {

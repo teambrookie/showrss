@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/fabienfoerster/showrss/betaseries"
-	"github.com/fabienfoerster/showrss/dao"
 	"github.com/gorilla/feeds"
+	"github.com/teambrookie/showrss/betaseries"
+	"github.com/teambrookie/showrss/dao"
 )
 
 type rssHandler struct {

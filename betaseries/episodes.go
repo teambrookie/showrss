@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/fabienfoerster/showrss/dao"
+	"github.com/teambrookie/showrss/dao"
 )
 
 type betaseriesEpisodesResponse struct {
