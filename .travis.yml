@@ -6,3 +6,5 @@ go:
 install:
   - go get github.com/braintree/manners
   - go get github.com/qopher/go-torrentapi
+  - go get github.com/boltdb/bolt
+  - go get github.com/gorilla/feeds
