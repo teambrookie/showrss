@@ -25,7 +25,7 @@ func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	token, err := h.episodeProvider.Auth(username, password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 	response := AuthResponse{
