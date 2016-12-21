@@ -3,18 +3,9 @@ package betaseries
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"showrss/dao"
 )
-
-func init() {
-	apiKey = os.Getenv("BETASERIES_KEY")
-	if apiKey == "" {
-		log.Fatalln("BETASERIES_KEY must be set in env")
-	}
-}
 
 type betaseriesEpisodesResponse struct {
 	Shows []struct {
@@ -51,14 +42,14 @@ func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
 }
 
 //Episodes retrieve your unseen episode from betaseries
-func Episodes(token string) ([]dao.Episode, error) {
+func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.betaseries.com/episodes/list", nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("X-BetaSeries-Version", "2.4")
-	req.Header.Add("X-BetaSeries-Key", apiKey)
+	req.Header.Add("X-BetaSeries-Key", b.ApiKey)
 	req.Header.Add("X-BetaSeries-Token", token)
 
 	resp, err := client.Do(req)

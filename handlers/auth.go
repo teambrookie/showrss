@@ -11,7 +11,11 @@ type AuthResponse struct {
 	Token    string `json:"token"`
 }
 
-func AuthHandler(w http.ResponseWriter, r *http.Request) {
+type authHandler struct {
+	episodeProvider betaseries.EpisodeProvider
+}
+
+func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
@@ -19,7 +23,7 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "empty login/password", http.StatusUnauthorized)
 		return
 	}
-	err, token := betaseries.Auth(username, password)
+	token, err := h.episodeProvider.Auth(username, password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
@@ -31,4 +35,10 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 	return
+}
+
+func AuthHandler(episodeProvider betaseries.EpisodeProvider) http.Handler {
+	return &authHandler{
+		episodeProvider: episodeProvider,
+	}
 }

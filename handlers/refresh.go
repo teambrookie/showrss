@@ -9,8 +9,9 @@ import (
 )
 
 type refreshHandler struct {
-	store dao.EpisodeStore
-	jobs  chan dao.Episode
+	store           dao.EpisodeStore
+	episodeProvider betaseries.EpisodeProvider
+	jobs            chan dao.Episode
 }
 
 func (h *refreshHandler) saveAllEpisode(episodes []dao.Episode) error {
@@ -29,7 +30,7 @@ func (h *refreshHandler) refreshEpisodes(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "token must be set in query params", http.StatusNotAcceptable)
 		return
 	}
-	ep, err := betaseries.Episodes(token)
+	ep, err := h.episodeProvider.Episodes(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -78,9 +79,10 @@ func (h *refreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RefreshHandler(store dao.EpisodeStore, jobs chan dao.Episode) http.Handler {
+func RefreshHandler(store dao.EpisodeStore, epProvider betaseries.EpisodeProvider, jobs chan dao.Episode) http.Handler {
 	return &refreshHandler{
-		store: store,
-		jobs:  jobs,
+		store:           store,
+		episodeProvider: epProvider,
+		jobs:            jobs,
 	}
 }

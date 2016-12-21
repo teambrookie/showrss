@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"showrss/betaseries"
 	"showrss/dao"
 	"showrss/handlers"
 	"showrss/torrent"
@@ -48,6 +49,13 @@ func main() {
 	var dbAddr = flag.String("db", "showrss.db", "DB address")
 	flag.Parse()
 
+	apiKey := os.Getenv("BETASERIES_KEY")
+	if apiKey == "" {
+		log.Fatalln("BETASERIES_KEY must be set in env")
+	}
+
+	episodeProvider := betaseries.Betaseries{ApiKey: apiKey}
+
 	log.Println("Starting server ...")
 	log.Printf("HTTP service listening on %s", *httpAddr)
 	log.Println("Connecting to db ...")
@@ -72,10 +80,10 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
-	mux.HandleFunc("/auth", handlers.AuthHandler)
-	mux.Handle("/refresh", handlers.RefreshHandler(store, jobs))
+	mux.Handle("/auth", handlers.AuthHandler(episodeProvider))
+	mux.Handle("/refresh", handlers.RefreshHandler(store, episodeProvider, jobs))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
-	mux.Handle("/rss", handlers.RSSHandler(store))
+	mux.Handle("/rss", handlers.RSSHandler(store, episodeProvider))
 
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr
