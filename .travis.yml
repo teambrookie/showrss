@@ -1,0 +1,8 @@
+language: go
+
+go:
+  - 1.6.x
+
+install:
+  - go get github.com/braintree/manners
+  - go get github.com/qopher/go-torrentapi
