@@ -11,7 +11,7 @@ import (
 )
 
 type rssHandler struct {
-	db *dao.DB
+	store dao.EpisodeStore
 }
 
 func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	for _, ep := range episodes {
-		episode, err := h.db.GetEpisode(ep.Name)
+		episode, err := h.store.GetEpisode(ep.Name)
 		if episode.MagnetLink == "" || err != nil {
 			continue
 		}
@@ -53,8 +53,8 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RSSHandler(db *dao.DB) http.Handler {
+func RSSHandler(store dao.EpisodeStore) http.Handler {
 	return &rssHandler{
-		db: db,
+		store: store,
 	}
 }

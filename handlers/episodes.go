@@ -7,11 +7,11 @@ import (
 )
 
 type episodeHandler struct {
-	db *dao.DB
+	store dao.EpisodeStore
 }
 
 func (h *episodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	episodes, err := h.db.GetAllEpisode()
+	episodes, err := h.store.GetAllEpisode()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -21,8 +21,8 @@ func (h *episodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func EpisodeHandler(db *dao.DB) http.Handler {
+func EpisodeHandler(store dao.EpisodeStore) http.Handler {
 	return &episodeHandler{
-		db: db,
+		store: store,
 	}
 }

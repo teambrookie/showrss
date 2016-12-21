@@ -20,7 +20,7 @@ import (
 
 const version = "1.0.0"
 
-func worker(jobs <-chan dao.Episode, db *dao.DB) {
+func worker(jobs <-chan dao.Episode, store dao.EpisodeStore) {
 	for episode := range jobs {
 		time.Sleep(2 * time.Second)
 		log.Println("Processing : " + episode.Name)
@@ -35,7 +35,7 @@ func worker(jobs <-chan dao.Episode, db *dao.DB) {
 		}
 		episode.MagnetLink = torrentLink
 		episode.LastModified = time.Now()
-		err = db.UpdateEpisode(episode)
+		err = store.UpdateEpisode(episode)
 		if err != nil {
 			log.Printf("Error saving %s to DB ...\n", episode.Name)
 		}
@@ -53,12 +53,12 @@ func main() {
 	log.Println("Connecting to db ...")
 
 	//DB stuff
-	db, err := dao.InitDB(*dbAddr)
+	store, err := dao.InitDB(*dbAddr)
 	if err != nil {
 		log.Fatalln("Error connecting to DB")
 	}
 
-	err = db.CreateBucket("episodes")
+	err = store.CreateBucket("episodes")
 	if err != nil {
 		log.Fatalln("Error when creating bucket")
 	}
@@ -66,16 +66,16 @@ func main() {
 	// Worker stuff
 	log.Println("Starting worker ...")
 	jobs := make(chan dao.Episode, 100)
-	go worker(jobs, db)
+	go worker(jobs, store)
 
 	errChan := make(chan error, 10)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.HandleFunc("/auth", handlers.AuthHandler)
-	mux.Handle("/refresh", handlers.RefreshHandler(db, jobs))
-	mux.Handle("/episodes", handlers.EpisodeHandler(db))
-	mux.Handle("/rss", handlers.RSSHandler(db))
+	mux.Handle("/refresh", handlers.RefreshHandler(store, jobs))
+	mux.Handle("/episodes", handlers.EpisodeHandler(store))
+	mux.Handle("/rss", handlers.RSSHandler(store))
 
 	httpServer := manners.NewServer()
 	httpServer.Addr = *httpAddr

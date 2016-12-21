@@ -9,13 +9,13 @@ import (
 )
 
 type refreshHandler struct {
-	db   *dao.DB
-	jobs chan dao.Episode
+	store dao.EpisodeStore
+	jobs  chan dao.Episode
 }
 
 func (h *refreshHandler) saveAllEpisode(episodes []dao.Episode) error {
 	for _, ep := range episodes {
-		err := h.db.AddEpisode(ep)
+		err := h.store.AddEpisode(ep)
 		if err != nil {
 			return err
 		}
@@ -45,7 +45,7 @@ func (h *refreshHandler) refreshEpisodes(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *refreshHandler) refreshTorrent(w http.ResponseWriter, r *http.Request) {
-	notFounds, err := h.db.GetAllNotFoundEpisode()
+	notFounds, err := h.store.GetAllNotFoundEpisode()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -78,9 +78,9 @@ func (h *refreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RefreshHandler(db *dao.DB, jobs chan dao.Episode) http.Handler {
+func RefreshHandler(store dao.EpisodeStore, jobs chan dao.Episode) http.Handler {
 	return &refreshHandler{
-		db:   db,
-		jobs: jobs,
+		store: store,
+		jobs:  jobs,
 	}
 }

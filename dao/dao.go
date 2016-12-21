@@ -8,6 +8,15 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+type EpisodeStore interface {
+	GetEpisode(string) (Episode, error)
+	AddEpisode(Episode) error
+	UpdateEpisode(Episode) error
+	DeleteEpisode(string) error
+	GetAllEpisode() ([]Episode, error)
+	GetAllNotFoundEpisode() ([]Episode, error)
+}
+
 type Episode struct {
 	Name         string    `json:"name"`
 	Code         string    `json:"code"`
@@ -17,29 +26,29 @@ type Episode struct {
 }
 type Episodes []Episode
 
-type DB struct {
-	*bolt.DB
+type BoltEpisodeStore struct {
+	db *bolt.DB
 }
 
-func InitDB(dbName string) (*DB, error) {
+func InitDB(dbName string) (*BoltEpisodeStore, error) {
 	db, err := bolt.Open(dbName, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &DB{db}, nil
+	return &BoltEpisodeStore{db}, nil
 }
 
-func (db *DB) CreateBucket(bucketName string) error {
-	err := db.Update(func(tx *bolt.Tx) error {
+func (store *BoltEpisodeStore) CreateBucket(bucketName string) error {
+	err := store.db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
 		return err
 	})
 	return err
 }
 
-func (db *DB) GetEpisode(name string) (Episode, error) {
+func (store *BoltEpisodeStore) GetEpisode(name string) (Episode, error) {
 	var episode Episode
-	err := db.View(func(tx *bolt.Tx) error {
+	err := store.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("episodes"))
 		v := b.Get([]byte(name))
 		json.Unmarshal(v, &episode)
@@ -49,8 +58,8 @@ func (db *DB) GetEpisode(name string) (Episode, error) {
 
 }
 
-func (db *DB) AddEpisode(ep Episode) error {
-	err := db.Update(func(tx *bolt.Tx) error {
+func (store *BoltEpisodeStore) AddEpisode(ep Episode) error {
+	err := store.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("episodes"))
 		if v := b.Get([]byte(ep.Name)); v != nil {
 			return nil
@@ -65,8 +74,8 @@ func (db *DB) AddEpisode(ep Episode) error {
 	return err
 }
 
-func (db *DB) UpdateEpisode(ep Episode) error {
-	err := db.Update(func(tx *bolt.Tx) error {
+func (store *BoltEpisodeStore) UpdateEpisode(ep Episode) error {
+	err := store.db.Update(func(tx *bolt.Tx) error {
 		encoded, err := json.Marshal(ep)
 		if err != nil {
 			return err
@@ -77,17 +86,17 @@ func (db *DB) UpdateEpisode(ep Episode) error {
 	return err
 }
 
-func (db *DB) DeleteEpisode(name string) error {
-	err := db.Update(func(tx *bolt.Tx) error {
+func (store *BoltEpisodeStore) DeleteEpisode(name string) error {
+	err := store.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("episodes"))
 		return b.Delete([]byte(name))
 	})
 	return err
 }
 
-func (db *DB) GetAllEpisode() ([]Episode, error) {
+func (store *BoltEpisodeStore) GetAllEpisode() ([]Episode, error) {
 	var episodes []Episode
-	err := db.View(func(tx *bolt.Tx) error {
+	err := store.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("episodes"))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
@@ -100,9 +109,9 @@ func (db *DB) GetAllEpisode() ([]Episode, error) {
 	return episodes, err
 }
 
-func (db *DB) GetAllNotFoundEpisode() ([]Episode, error) {
+func (store *BoltEpisodeStore) GetAllNotFoundEpisode() ([]Episode, error) {
 	var episodes []Episode
-	err := db.View(func(tx *bolt.Tx) error {
+	err := store.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("episodes"))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
