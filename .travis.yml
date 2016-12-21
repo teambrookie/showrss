@@ -8,3 +8,9 @@ install:
   - go get github.com/qopher/go-torrentapi
   - go get github.com/boltdb/bolt
   - go get github.com/gorilla/feeds
+
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
