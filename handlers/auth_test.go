@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"showrss/dao"
 	"testing"
+
+	"github.com/fabienfoerster/showrss/dao"
 )
 
 type FakeUser struct {

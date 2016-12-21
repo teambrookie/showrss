@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"showrss/dao"
 	"time"
 
-	"showrss/betaseries"
-
+	"github.com/fabienfoerster/showrss/betaseries"
+	"github.com/fabienfoerster/showrss/dao"
 	"github.com/gorilla/feeds"
 )
 

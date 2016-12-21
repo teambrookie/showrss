@@ -3,7 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"showrss/dao"
+
+	"github.com/fabienfoerster/showrss/dao"
 )
 
 type episodeHandler struct {

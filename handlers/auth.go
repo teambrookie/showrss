@@ -3,7 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"showrss/betaseries"
+
+	"github.com/fabienfoerster/showrss/betaseries"
 )
 
 type AuthResponse struct {

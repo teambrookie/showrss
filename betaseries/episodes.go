@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"showrss/dao"
+
+	"github.com/fabienfoerster/showrss/dao"
 )
 
 type betaseriesEpisodesResponse struct {

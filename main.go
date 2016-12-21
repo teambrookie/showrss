@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"showrss/betaseries"
-	"showrss/dao"
-	"showrss/handlers"
-	"showrss/torrent"
 	"time"
+
+	"github.com/fabienfoerster/showrss/betaseries"
+	"github.com/fabienfoerster/showrss/dao"
+	"github.com/fabienfoerster/showrss/handlers"
+	"github.com/fabienfoerster/showrss/torrent"
 
 	"flag"
 

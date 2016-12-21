@@ -3,9 +3,9 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"showrss/betaseries"
 
-	"showrss/dao"
+	"github.com/fabienfoerster/showrss/betaseries"
+	"github.com/fabienfoerster/showrss/dao"
 )
 
 type refreshHandler struct {
