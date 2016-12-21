@@ -1,6 +1,6 @@
 # showrss
 
-[![Build Status](https://travis-ci.org/TeamBrookie/showrss.svg?branch=master)](https://travis-ci.org/TeamBrookie/showrss)
+[![Build Status](https://travis-ci.org/teambrookie/showrss.svg?branch=master)](https://travis-ci.org/teambrookie/showrss)
 
 ## Don't work with go 1.7
 
