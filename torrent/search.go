@@ -1,8 +1,10 @@
 package torrent
 
-import torrentapi "github.com/qopher/go-torrentapi"
-import "github.com/teambrookie/showrss/dao"
-import "strconv"
+import (
+	"fmt"
+
+	"github.com/qopher/go-torrentapi"
+)
 
 func goodEnoughTorrent(results torrentapi.TorrentResults) string {
 	for _, t := range results {
@@ -13,14 +15,15 @@ func goodEnoughTorrent(results torrentapi.TorrentResults) string {
 	return ""
 }
 
-func Search(episode dao.Episode) (string, error) {
+func Search(showID string, episodeCode string, quality string) (string, error) {
 	api, err := torrentapi.Init()
 	if err != nil {
 		return "", err
 	}
+	searchString := fmt.Sprintf("%s %s", episodeCode, quality)
 	api.Format("json_extended")
-	api.SearchTVDB(strconv.Itoa(episode.ShowID))
-	api.SearchString(episode.Code + " 720p")
+	api.SearchTVDB(showID)
+	api.SearchString(searchString)
 	results, err := api.Search()
 	if err != nil {
 		return "", err

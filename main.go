@@ -17,6 +17,8 @@ import (
 
 	"syscall"
 
+	"strconv"
+
 	"github.com/braintree/manners"
 )
 
@@ -26,7 +28,7 @@ func worker(jobs <-chan dao.Episode, store dao.EpisodeStore) {
 	for episode := range jobs {
 		time.Sleep(2 * time.Second)
 		log.Println("Processing : " + episode.Name)
-		torrentLink, err := torrent.Search(episode)
+		torrentLink, err := torrent.Search(strconv.Itoa(episode.ShowID), episode.Code, "720p")
 		log.Println("Result : " + torrentLink)
 		if err != nil {
 			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
