@@ -37,6 +37,15 @@ func (fake FakeEpisodeProvider) Episodes(token string) ([]dao.Episode, error) {
 }
 
 func TestAuthHandler(t *testing.T) {
+	episodeProvider := FakeEpisodeProvider{
+		users: map[string]FakeUser{
+			"binou": FakeUser{
+				Username: "binou",
+				Password: "binette",
+				Token:    "tokenbinou",
+			},
+		},
+	}
 	authRequest, err := http.NewRequest("POST", "/auth", nil)
 	cases := []struct {
 		w                    *httptest.ResponseRecorder
@@ -85,16 +94,6 @@ func TestAuthHandler(t *testing.T) {
 			password:             "binette",
 			expectedResponseCode: http.StatusOK,
 			expectedResponseBody: []byte("{\"username\":\"binou\",\"token\":\"tokenbinou\"}\n"),
-		},
-	}
-
-	episodeProvider := FakeEpisodeProvider{
-		users: map[string]FakeUser{
-			"binou": FakeUser{
-				Username: "binou",
-				Password: "binette",
-				Token:    "tokenbinou",
-			},
 		},
 	}
 
