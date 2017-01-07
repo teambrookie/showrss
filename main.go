@@ -76,7 +76,7 @@ func main() {
 
 	// Worker stuff
 	log.Println("Starting worker ...")
-	jobs := make(chan dao.Episode, 100)
+	jobs := make(chan dao.Episode, 1000)
 	go worker(jobs, store)
 
 	errChan := make(chan error, 10)
