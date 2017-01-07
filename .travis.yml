@@ -1,4 +1,9 @@
+sudo: required
+
 language: go
+
+services:
+  - docker
 
 go:
   - 1.6.x
@@ -8,3 +13,11 @@ install:
   - go get github.com/qopher/go-torrentapi
   - go get github.com/boltdb/bolt
   - go get github.com/gorilla/feeds
+  
+after_success:
+  - ./build.sh
+  - docker build -t teambrookie/showrss .
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+    docker push teambrookie/showrss;
+    fi
