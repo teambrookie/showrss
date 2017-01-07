@@ -19,5 +19,5 @@ after_success:
   - docker build -t teambrookie/showrss .
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-    docker push fabienfoerster/showrss;
+    docker push teambrookie/showrss;
     fi
