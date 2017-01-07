@@ -7,10 +7,6 @@ services:
 
 go:
   - 1.6.x
-  
-before_install:
-  - ./build.sh
-  - docker build -t teambrookie/showrss .
 
 install:
   - go get github.com/braintree/manners
@@ -19,6 +15,8 @@ install:
   - go get github.com/gorilla/feeds
   
 after_success:
+  - ./build.sh
+  - docker build -t teambrookie/showrss .
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
     docker push fabienfoerster/showrss;
