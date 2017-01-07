@@ -9,6 +9,7 @@ go:
   - 1.6.x
   
 before_install:
+  - ./build.sh
   - docker build -t teambrookie/showrss .
 
 install:
