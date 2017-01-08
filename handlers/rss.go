@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"fmt"
+
 	"github.com/gorilla/feeds"
 	"github.com/teambrookie/showrss/betaseries"
 	"github.com/teambrookie/showrss/dao"
@@ -38,10 +40,11 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if episode.MagnetLink == "" || err != nil {
 			continue
 		}
+		description := fmt.Sprintf("<a href='%s'>MagnetLink</a>", episode.MagnetLink)
 		item := &feeds.Item{
 			Title:       episode.Name,
 			Link:        &feeds.Link{Href: episode.MagnetLink},
-			Description: episode.MagnetLink,
+			Description: description,
 			Created:     episode.LastModified,
 		}
 		feed.Add(item)
