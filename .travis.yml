@@ -15,7 +15,7 @@ install:
   - go get github.com/gorilla/feeds
   
 after_success:
-  - ./build.sh
+  - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o showrss .
   - docker build -t teambrookie/showrss .
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
