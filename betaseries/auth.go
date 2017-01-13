@@ -25,6 +25,8 @@ func toMD5(s string) string {
 	return checksum
 }
 
+//Auth authentificate you in Betaseries using the login/password method
+// and return your Betaseries token
 func (b Betaseries) Auth(login, password string) (string, error) {
 	md5 := toMD5(password)
 

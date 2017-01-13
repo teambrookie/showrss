@@ -43,6 +43,7 @@ func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
 }
 
 //Episodes retrieve your unseen episode from betaseries
+// and flatten the result so you have an array of Episode
 func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.betaseries.com/episodes/list", nil)
