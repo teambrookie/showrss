@@ -1,6 +1,7 @@
 # ShowRSS
 
 [![Build Status](https://travis-ci.org/teambrookie/showrss.svg?branch=master)](https://travis-ci.org/teambrookie/showrss)
+[![Go Report Card](https://goreportcard.com/badge/github.com/teambrookie/showrss)](https://goreportcard.com/report/github.com/teambrookie/showrss)
 
 ## Don't work with go 1.7
 
