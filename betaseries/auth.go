@@ -43,7 +43,7 @@ func (b Betaseries) Auth(login, password string) (string, error) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	req.Header.Add("X-BetaSeries-Version", "2.4")
-	req.Header.Add("X-BetaSeries-Key", b.ApiKey)
+	req.Header.Add("X-BetaSeries-Key", b.APIKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

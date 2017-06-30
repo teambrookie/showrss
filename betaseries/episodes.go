@@ -22,6 +22,9 @@ type betaseriesEpisodesResponse struct {
 				Title     string `json:"title"`
 			} `json:"show"`
 			Code string `json:"code"`
+			User struct {
+				Downloaded bool `json:"downloaded"`
+			}
 		} `json:"unseen"`
 	} `json:"shows"`
 	Errors []interface{} `json:"errors"`
@@ -31,13 +34,14 @@ func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
 	var episodes []dao.Episode
 	for _, show := range resp.Shows {
 		for _, unseen := range show.Unseen {
-			episode := dao.Episode{}
-			episode.Name = fmt.Sprintf("%s S%02dE%02d", unseen.Show.Title, unseen.Season, unseen.Episode)
-			episode.Code = unseen.Code
-			episode.ShowID = unseen.Show.TheTVDBID
-			episodes = append(episodes, episode)
+			if unseen.User.Downloaded == false {
+				episode := dao.Episode{}
+				episode.Name = fmt.Sprintf("%s S%02dE%02d", unseen.Show.Title, unseen.Season, unseen.Episode)
+				episode.Code = unseen.Code
+				episode.ShowID = unseen.Show.TheTVDBID
+				episodes = append(episodes, episode)
+			}
 		}
-
 	}
 	return episodes
 }
@@ -51,7 +55,7 @@ func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 		return nil, err
 	}
 	req.Header.Add("X-BetaSeries-Version", "2.4")
-	req.Header.Add("X-BetaSeries-Key", b.ApiKey)
+	req.Header.Add("X-BetaSeries-Key", b.APIKey)
 	req.Header.Add("X-BetaSeries-Token", token)
 
 	resp, err := client.Do(req)
@@ -64,5 +68,6 @@ func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return transformResponse(betaResp), nil
 }

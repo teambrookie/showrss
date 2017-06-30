@@ -57,7 +57,7 @@ func main() {
 		log.Fatalln("BETASERIES_KEY must be set in env")
 	}
 
-	episodeProvider := betaseries.Betaseries{ApiKey: apiKey}
+	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
 
 	log.Println("Starting server ...")
 	log.Printf("HTTP service listening on %s", *httpAddr)
