@@ -6,7 +6,7 @@ services:
   - docker
 
 go:
-  - 1.6.x
+  - 1.8.x
 
 install:
   - go get github.com/braintree/manners
