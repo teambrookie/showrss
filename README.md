@@ -3,9 +3,11 @@
 [![Build Status](https://travis-ci.org/teambrookie/showrss.svg?branch=master)](https://travis-ci.org/teambrookie/showrss)
 [![Go Report Card](https://goreportcard.com/badge/github.com/teambrookie/showrss)](https://goreportcard.com/report/github.com/teambrookie/showrss)
 
-## Don't work with go 1.7
+## Description
 
-###Using it
+ShowRSS is a small app that let you ask Betaseries for your unseen episodes and then find the corresponding torrent using RARBG and expose them as an RSS feed.
+
+### Using it
 
 First of all you need a Betaseries Token, you obtain it using the /auth endpoint like this
 ```
