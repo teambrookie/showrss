@@ -18,6 +18,12 @@ after_success:
   - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o showrss .
   - docker build -t teambrookie/showrss .
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker build -t teambrookie/showrss .;
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
     docker push teambrookie/showrss;
+    fi
+  - if [ "$TRAVIS_BRANCH" != "master" ]; then
+    docker build -t teambrookie/showrss:$TRAVIS_BRANCH .;
+    docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+    docker push teambrookie/showrss:$TRAVIS_BRANCH;
     fi
