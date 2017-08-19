@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,8 +19,6 @@ import (
 	"syscall"
 
 	"strconv"
-
-	"github.com/braintree/manners"
 )
 
 const version = "1.0.0"
@@ -88,7 +87,7 @@ func main() {
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss", handlers.RSSHandler(store, episodeProvider))
 
-	httpServer := manners.NewServer()
+	httpServer := http.Server{}
 	httpServer.Addr = *httpAddr
 	httpServer.Handler = handlers.LoggingHandler(mux)
 
@@ -107,7 +106,7 @@ func main() {
 			}
 		case s := <-signalChan:
 			log.Println(fmt.Sprintf("Captured %v. Exiting...", s))
-			httpServer.BlockingClose()
+			httpServer.Shutdown(context.Background())
 			os.Exit(0)
 		}
 	}
