@@ -8,9 +8,9 @@ import (
 
 func LoggingHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		format := "%s - - [%s] \"%s %s %s\" %s\n"
+		format := "%s - - [%s] \"%s %s %s %s\" \n"
 		fmt.Printf(format, r.RemoteAddr, time.Now().Format(time.RFC1123),
-			r.Method, r.URL.Path, r.Proto, r.UserAgent())
+			r.Method, r.URL.Path, r.URL.Query(), r.Proto)
 		h.ServeHTTP(w, r)
 	})
 }

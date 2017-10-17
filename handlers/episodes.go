@@ -12,6 +12,7 @@ type episodeHandler struct {
 }
 
 func (h *episodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
 	episodes, err := h.store.GetAllEpisode()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

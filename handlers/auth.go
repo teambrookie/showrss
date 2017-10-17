@@ -1,19 +1,23 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+
+	"cloud.google.com/go/firestore"
 
 	"github.com/teambrookie/showrss/betaseries"
 )
 
-type AuthResponse struct {
+type User struct {
 	Username string `json:"username"`
 	Token    string `json:"token"`
 }
 
 type authHandler struct {
 	episodeProvider betaseries.EpisodeProvider
+	client          *firestore.Client
 }
 
 func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,17 +33,21 @@ func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	response := AuthResponse{
+	response := User{
 		Username: username,
 		Token:    token,
 	}
+	userRef := h.client.Collection("users").Doc(username)
+	userRef.Create(context.Background(), response)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 	return
 }
 
-func AuthHandler(episodeProvider betaseries.EpisodeProvider) http.Handler {
+func AuthHandler(client *firestore.Client, episodeProvider betaseries.EpisodeProvider) http.Handler {
 	return &authHandler{
+		client:          client,
 		episodeProvider: episodeProvider,
 	}
 }
