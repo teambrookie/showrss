@@ -3,8 +3,6 @@ package dao
 import (
 	"encoding/json"
 
-	"time"
-
 	"github.com/boltdb/bolt"
 )
 
@@ -17,13 +15,6 @@ type EpisodeStore interface {
 	GetAllNotFoundEpisode() ([]Episode, error)
 }
 
-type Episode struct {
-	Name         string    `json:"name"`
-	Code         string    `json:"code"`
-	ShowID       int       `json:"show_id"`
-	MagnetLink   string    `json:"magnet_link"`
-	LastModified time.Time `json:"last_modified"`
-}
 type Episodes []Episode
 
 type BoltEpisodeStore struct {

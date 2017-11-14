@@ -8,6 +8,7 @@ import (
 	"cloud.google.com/go/firestore"
 
 	"github.com/teambrookie/showrss/betaseries"
+	"github.com/teambrookie/showrss/dao"
 )
 
 type User struct {
@@ -33,7 +34,7 @@ func (h *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	response := User{
+	response := dao.User{
 		Username: username,
 		Token:    token,
 	}

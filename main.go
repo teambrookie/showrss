@@ -9,8 +9,6 @@ import (
 	"os/signal"
 	"time"
 
-	"google.golang.org/api/iterator"
-
 	"github.com/teambrookie/showrss/betaseries"
 	"github.com/teambrookie/showrss/dao"
 	"github.com/teambrookie/showrss/handlers"
@@ -55,28 +53,25 @@ func worker(jobs <-chan dao.Episode, updateEpisode chan<- dao.Episode, client *f
 	}
 }
 
-func updateEpisodeUsers(client *firestore.Client, episodes <-chan dao.Episode) {
+func updateEpisodeUsers(datastore *dao.Datastore, episodes <-chan dao.Episode) {
 	for episode := range episodes {
 		fmt.Println("Updating user episodes ...")
-		iter := client.Collection("users").Documents(context.Background())
-		for {
-			doc, err := iter.Next()
-			if err != iterator.Done {
-				break
-			}
+		users, err := datastore.GetAllUsers()
+		fmt.Println(users)
+		if err != nil {
+			log.Println("Error retrieving user from firestore")
+		}
+		for _, user := range users {
+			err := datastore.UpdateUserEpisode(user, episode)
 			if err != nil {
-				log.Println(err)
+				log.Println("Error updating user episode status")
 			}
-			var user handlers.User
-			doc.DataTo(&user)
-			epRef := client.Collection("users").Doc(user.Username).Collection("episodes").Doc(episode.Name)
-			epRef.UpdateStruct(context.Background(), []string{"MagnetLink", "LastModified"}, episode)
-
 		}
 	}
 }
 
 func main() {
+
 	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
 	var dbAddr = flag.String("db", "showrss.db", "DB address")
 	flag.Parse()
@@ -111,18 +106,20 @@ func main() {
 	}
 	log.Println("Firestore client initialized ...")
 
+	datastore := dao.Datastore{client}
+
 	// Worker stuff
 	log.Println("Starting worker ...")
 	jobs := make(chan dao.Episode, 1000)
 	updateEpisode := make(chan dao.Episode, 100)
 	go worker(jobs, updateEpisode, client)
-	go updateEpisodeUsers(client, updateEpisode)
+	go updateEpisodeUsers(&datastore, updateEpisode)
 	errChan := make(chan error, 10)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.Handle("/auth", handlers.AuthHandler(client, episodeProvider))
-	mux.Handle("/refresh", handlers.RefreshHandler(client, episodeProvider, jobs))
+	mux.Handle("/refresh", handlers.RefreshHandler(&datastore, episodeProvider, jobs))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss", handlers.RSSHandler(store, episodeProvider))
 
