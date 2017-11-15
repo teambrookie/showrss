@@ -7,19 +7,17 @@ import (
 	"fmt"
 
 	"github.com/gorilla/feeds"
-	"github.com/teambrookie/showrss/betaseries"
 	"github.com/teambrookie/showrss/dao"
 )
 
 type rssHandler struct {
-	store           dao.EpisodeStore
-	episodeProvider betaseries.EpisodeProvider
+	datastore *dao.Datastore
 }
 
 func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
-	if token == "" {
-		http.Error(w, "token must be set in query params", http.StatusNotAcceptable)
+	username := r.URL.Query().Get("username")
+	if username == "" {
+		http.Error(w, "username must be set in query params", http.StatusNotAcceptable)
 		return
 	}
 
@@ -31,12 +29,11 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Author:      &feeds.Author{Name: "Fabien Foerster", Email: "fabienfoerster@gmail.com"},
 		Created:     now,
 	}
-	episodes, err := h.episodeProvider.Episodes(token)
+	episodes, err := h.datastore.GetUserEpisodes(username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	for _, ep := range episodes {
-		episode, err := h.store.GetEpisode(ep.Name)
+	for _, episode := range episodes {
 		if episode.MagnetLink == "" || err != nil {
 			continue
 		}
@@ -56,9 +53,8 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RSSHandler(store dao.EpisodeStore, episodeProvider betaseries.EpisodeProvider) http.Handler {
+func RSSHandler(datastore *dao.Datastore) http.Handler {
 	return &rssHandler{
-		store:           store,
-		episodeProvider: episodeProvider,
+		datastore: datastore,
 	}
 }

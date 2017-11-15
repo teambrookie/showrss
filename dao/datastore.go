@@ -2,7 +2,6 @@ package dao
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -37,7 +36,6 @@ func (d *Datastore) CreateUser(username, token string) error {
 func (d *Datastore) GetAllUsers() ([]User, error) {
 	var users []User
 	docs, err := d.Store.Collection("users").Documents(context.Background()).GetAll()
-	fmt.Println(docs)
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +81,18 @@ func (d *Datastore) AddUserEpisodes(username string, episodes []Episode) error {
 		if v {
 
 			episodeRef := d.Store.Collection("users").Doc(username).Collection("episodes").Doc(k.Name)
-			batch.Set(episodeRef, k)
+
 			if !d.existsRef("foundTorrents/" + k.Name) {
+				batch.Set(episodeRef, k)
 				newTorrentRef := d.Store.Collection("notFoundTorrents").Doc(k.Name)
 				batch.Set(newTorrentRef, k)
+			} else {
+				torrent, err := d.getTorrent(k.Name)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				batch.Set(episodeRef, torrent)
 			}
 		}
 	}
@@ -96,8 +102,7 @@ func (d *Datastore) AddUserEpisodes(username string, episodes []Episode) error {
 			batch.Delete(episodeRef)
 		}
 	}
-	results, err := batch.Commit(context.Background())
-	fmt.Println(results)
+	_, err = batch.Commit(context.Background())
 	if err != nil {
 		log.Println(err)
 	}
@@ -106,11 +111,23 @@ func (d *Datastore) AddUserEpisodes(username string, episodes []Episode) error {
 
 }
 
+func (d *Datastore) getTorrent(name string) (Episode, error) {
+	var ep Episode
+	data, err := d.Store.Collection("foundTorrents").Doc(name).Get(context.Background())
+	if err != nil {
+		return Episode{}, err
+	}
+	err = data.DataTo(&ep)
+	if err != nil {
+		return Episode{}, err
+	}
+	return ep, nil
+
+}
+
 func (d *Datastore) UpdateUserEpisode(user User, ep Episode) error {
-	log.Println("coucou")
 	epRef := d.Store.Collection("users").Doc(user.Username).Collection("episodes").Doc(ep.Name)
-	res, err := epRef.UpdateStruct(context.Background(), []string{"magnet_link"}, Episode{MagnetLink: ep.MagnetLink})
-	log.Println(res)
+	_, err := epRef.UpdateStruct(context.Background(), []string{"magnet_link"}, Episode{MagnetLink: ep.MagnetLink})
 	return err
 }
 

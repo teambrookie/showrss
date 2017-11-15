@@ -8,12 +8,12 @@ import (
 )
 
 type episodeHandler struct {
-	store dao.EpisodeStore
+	datastore *dao.Datastore
 }
 
 func (h *episodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	episodes, err := h.store.GetAllEpisode()
+	episodes, err := h.datastore.GetAllNotFoundTorrent()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -23,8 +23,8 @@ func (h *episodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func EpisodeHandler(store dao.EpisodeStore) http.Handler {
+func EpisodeHandler(datastore *dao.Datastore) http.Handler {
 	return &episodeHandler{
-		store: store,
+		datastore: datastore,
 	}
 }

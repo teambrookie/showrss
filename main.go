@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/teambrookie/showrss/betaseries"
@@ -25,16 +26,16 @@ import (
 const version = "1.0.0"
 
 func worker(jobs <-chan dao.Episode, updateEpisode chan<- dao.Episode, client *firestore.Client) {
+	time.Sleep(2 * time.Second)
 	for episode := range jobs {
 		time.Sleep(2 * time.Second)
-		log.Println("Processing : " + episode.Name)
 		torrentLink, err := torrent.Search(strconv.Itoa(episode.ShowID), episode.Code, "720p")
-		log.Println("Result : " + torrentLink)
 		if err != nil {
 			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
 			continue
 		}
 		if torrentLink == "" {
+			log.Printf("Cannot find : %s", episode.Name)
 			continue
 		}
 		episode.MagnetLink = torrentLink
@@ -55,16 +56,14 @@ func worker(jobs <-chan dao.Episode, updateEpisode chan<- dao.Episode, client *f
 
 func updateEpisodeUsers(datastore *dao.Datastore, episodes <-chan dao.Episode) {
 	for episode := range episodes {
-		fmt.Println("Updating user episodes ...")
 		users, err := datastore.GetAllUsers()
-		fmt.Println(users)
 		if err != nil {
 			log.Println("Error retrieving user from firestore")
 		}
 		for _, user := range users {
 			err := datastore.UpdateUserEpisode(user, episode)
-			if err != nil {
-				log.Println("Error updating user episode status")
+			if err != nil && !strings.Contains(err.Error(), " code = NotFound") {
+				log.Println(err)
 			}
 		}
 	}
@@ -73,7 +72,6 @@ func updateEpisodeUsers(datastore *dao.Datastore, episodes <-chan dao.Episode) {
 func main() {
 
 	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
-	var dbAddr = flag.String("db", "showrss.db", "DB address")
 	flag.Parse()
 
 	apiKey := os.Getenv("BETASERIES_KEY")
@@ -86,17 +84,6 @@ func main() {
 	log.Println("Starting server ...")
 	log.Printf("HTTP service listening on %s", *httpAddr)
 	log.Println("Connecting to db ...")
-
-	//DB stuff
-	store, err := dao.InitDB(*dbAddr)
-	if err != nil {
-		log.Fatalln("Error connecting to DB")
-	}
-
-	err = store.CreateBucket("episodes")
-	if err != nil {
-		log.Fatalln("Error when creating bucket")
-	}
 
 	//Intialize Firestore client
 	ctx := context.Background()
@@ -118,10 +105,10 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
-	mux.Handle("/auth", handlers.AuthHandler(client, episodeProvider))
+	mux.Handle("/auth", handlers.AuthHandler(&datastore, episodeProvider))
 	mux.Handle("/refresh", handlers.RefreshHandler(&datastore, episodeProvider, jobs))
-	mux.Handle("/episodes", handlers.EpisodeHandler(store))
-	mux.Handle("/rss", handlers.RSSHandler(store, episodeProvider))
+	mux.Handle("/episodes", handlers.EpisodeHandler(&datastore))
+	mux.Handle("/rss", handlers.RSSHandler(&datastore))
 
 	httpServer := http.Server{}
 	httpServer.Addr = *httpAddr
