@@ -9,9 +9,8 @@ go:
   - 1.8.x
 
 install:
-  - go get github.com/qopher/go-torrentapi
-  - go get github.com/boltdb/bolt
-  - go get github.com/gorilla/feeds
+  - go get -u github.com/golang/dep/cmd/dep
+  - dep ensure
   
 after_success:
   - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o showrss .
