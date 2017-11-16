@@ -7,67 +7,21 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/teambrookie/showrss/betaseries"
 	"github.com/teambrookie/showrss/dao"
 	"github.com/teambrookie/showrss/handlers"
-	"github.com/teambrookie/showrss/torrent"
+	"github.com/teambrookie/showrss/worker"
 
 	"flag"
 	"syscall"
 
 	"cloud.google.com/go/firestore"
-
-	"strconv"
 )
 
 const version = "1.0.0"
-
-func worker(jobs <-chan dao.Episode, updateEpisode chan<- dao.Episode, client *firestore.Client) {
-	time.Sleep(2 * time.Second)
-	for episode := range jobs {
-		time.Sleep(2 * time.Second)
-		torrentLink, err := torrent.Search(strconv.Itoa(episode.ShowID), episode.Code, "720p")
-		if err != nil {
-			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
-			continue
-		}
-		if torrentLink == "" {
-			log.Printf("Cannot find : %s", episode.Name)
-			continue
-		}
-		episode.MagnetLink = torrentLink
-		episode.LastModified = time.Now()
-		batch := client.Batch()
-		oldRef := client.Collection("notFoundTorrents").Doc(episode.Name)
-		newRef := client.Collection("foundTorrents").Doc(episode.Name)
-		batch.Set(newRef, episode)
-		batch.Delete(oldRef)
-		_, err = batch.Commit(context.Background())
-		updateEpisode <- episode
-		if err != nil {
-			log.Printf("Error saving %s to DB ...\n", episode.Name)
-		}
-
-	}
-}
-
-func updateEpisodeUsers(datastore *dao.Datastore, episodes <-chan dao.Episode) {
-	for episode := range episodes {
-		users, err := datastore.GetAllUsers()
-		if err != nil {
-			log.Println("Error retrieving user from firestore")
-		}
-		for _, user := range users {
-			err := datastore.UpdateUserEpisode(user, episode)
-			if err != nil && !strings.Contains(err.Error(), " code = NotFound") {
-				log.Println(err)
-			}
-		}
-	}
-}
 
 func main() {
 
@@ -81,9 +35,8 @@ func main() {
 
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
 
-	log.Println("Starting server ...")
+	log.Println("Starting showrss ...")
 	log.Printf("HTTP service listening on %s", *httpAddr)
-	log.Println("Connecting to db ...")
 
 	//Intialize Firestore client
 	ctx := context.Background()
@@ -91,24 +44,31 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error when initializing the firestore client : %s\n", err)
 	}
-	log.Println("Firestore client initialized ...")
+	log.Println("Firestore connection OK ...")
 
-	datastore := dao.Datastore{client}
+	datastore := &dao.Datastore{Store: client}
 
 	// Worker stuff
 	log.Println("Starting worker ...")
-	jobs := make(chan dao.Episode, 1000)
+	torrentSearchs := make(chan dao.Episode, 1000)
 	updateEpisode := make(chan dao.Episode, 100)
-	go worker(jobs, updateEpisode, client)
-	go updateEpisodeUsers(&datastore, updateEpisode)
+	limiter := make(chan time.Time, 10)
+	go func() {
+		for t := range time.Tick(time.Hour * 1) {
+			limiter <- t
+		}
+	}()
+	go worker.TorrentSearch(torrentSearchs, updateEpisode, client)
+	go worker.UpdateEpisode(datastore, updateEpisode)
+	go worker.Refresh(limiter, torrentSearchs, datastore, episodeProvider)
 	errChan := make(chan error, 10)
 
-	mux := http.NewServeMux()
+	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
-	mux.Handle("/auth", handlers.AuthHandler(&datastore, episodeProvider))
-	mux.Handle("/refresh", handlers.RefreshHandler(&datastore, episodeProvider, jobs))
-	mux.Handle("/episodes", handlers.EpisodeHandler(&datastore))
-	mux.Handle("/rss", handlers.RSSHandler(&datastore))
+	mux.Handle("/auth", handlers.AuthHandler(datastore, episodeProvider))
+	mux.Handle("/refreshes", handlers.RefreshHandler(limiter))
+	mux.Handle("/{user}/episodes", handlers.EpisodeHandler(datastore))
+	mux.Handle("/{user}/rss", handlers.RSSHandler(datastore))
 
 	httpServer := http.Server{}
 	httpServer.Addr = *httpAddr

@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"fmt"
 
 	"github.com/gorilla/feeds"
@@ -15,7 +17,7 @@ type rssHandler struct {
 }
 
 func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	username := r.URL.Query().Get("username")
+	username := mux.Vars(r)["user"]
 	if username == "" {
 		http.Error(w, "username must be set in query params", http.StatusNotAcceptable)
 		return

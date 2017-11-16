@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/teambrookie/showrss/dao"
 )
 
@@ -12,8 +14,8 @@ type episodeHandler struct {
 }
 
 func (h *episodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
-	episodes, err := h.datastore.GetAllNotFoundTorrent()
+	username := mux.Vars(r)["user"]
+	episodes, err := h.datastore.GetUserEpisodes(username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
