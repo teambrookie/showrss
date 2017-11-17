@@ -5,35 +5,33 @@
 
 ## Description
 
-ShowRSS is a small app that let you ask Betaseries for your unseen episodes and then find the corresponding torrent using RARBG and expose them as an RSS feed.
+ShowRSS is a small API that let you ask Betaseries for your unseen episodes and then find the corresponding torrent using RARBG and expose them as an RSS feed.
 
 ### Using it
 
-First of all you need a Betaseries Token, you obtain it using the /auth endpoint like this
+Pretty straight forward, first you need to authentificate to obtain an user token for the Betaseries API.
+You can obtain one using the /auth endpoint.
 ```
 curl -X POST --data "username=xxx&password=xxx" http://localhost:8000/auth
 ```
 Note: the username and password are send using x-www-urlencoded
 
-Then they are the /refresh endpoint, it's role is to refresh the unseen episode and to refresh the torrent. They are use like this :
+From there your username and token are saved in the database and you can start using the API.
+
+The main endpoint is **/{user}/rss** that expose the rss feed corresponding of the torrent for your unseen episode.
 ```
-http://yourdomain/refresh?action=episode&token=xxx
-http://yourdomain/refresh?action=torrent
+http://localhost:8000/fabienfoerster/rss
 ```
 
-And finally what really interest us is the /rss endpoint
+Note : every hour ShowRSS will refresh your unseen episode and try to find the corresponding torrent. But if you like you can force the refresh using the **/refreshes** endpoint.
 ```
-http://yourdomain/rss?token=xxx
-```
-
-###Testing
-
-```
-curl -X POST --data "username=xxx&password=xxx" http://localhost:8000/auth
+http://localhost:8000/refreshes
 ```
 
-##Running
+Note : if it tickles your fancy your can see all your unseen episodes using the **/{user}/episodes** endpoint
+
+## Running
 
 ```
-docker run -p 8000:8000 -e BETASERIES_KEY=xxx showrss
+docker run -p 8000:8000 -e BETASERIES_KEY=xxx teambrookie/showrss
 ```
