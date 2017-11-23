@@ -52,24 +52,31 @@ func (d *Datastore) existsRef(ref string) bool {
 	return err == nil
 }
 
+//AddUserEpisodes will make a diff between the old episodes already saved in the database
+// and the new episodes retrieve from Betaseries
+// the new episodes will be saved in the database and the already seen episodes remove from the database
 func (d *Datastore) AddUserEpisodes(username string, episodes []Episode) error {
 
 	var oldEpisodes = make(map[Episode]bool)
 	var newEpisodes = make(map[Episode]bool)
-
 	old, err := d.GetUserEpisodes(username)
 	if err != nil {
 		return err
 	}
 
+	//first we mark all the episodes in the DB as old
 	for _, ep := range old {
 		oldEpisodes[ep] = true
 	}
+	// and the episodes retrive from betaseries as new
 	for _, ep := range episodes {
 		newEpisodes[ep] = true
 	}
 
+	//we range on all the old episodes
 	for k := range oldEpisodes {
+		// if there is the same episode in the old episode and the new episode
+		// it is neither new nor old
 		if _, ok := newEpisodes[k]; ok {
 			newEpisodes[k] = false
 			oldEpisodes[k] = false
@@ -77,11 +84,12 @@ func (d *Datastore) AddUserEpisodes(username string, episodes []Episode) error {
 	}
 
 	batch := d.Store.Batch()
+	//then we add all the new episodes inthe database
 	for k, v := range newEpisodes {
 		if v {
 
 			episodeRef := d.Store.Collection("users").Doc(username).Collection("episodes").Doc(k.Name)
-
+			// if the episode has been already found directly add it to the user episodes with the magnet link
 			if !d.existsRef("foundTorrents/" + k.Name) {
 				batch.Set(episodeRef, k)
 				newTorrentRef := d.Store.Collection("notFoundTorrents").Doc(k.Name)
@@ -96,6 +104,7 @@ func (d *Datastore) AddUserEpisodes(username string, episodes []Episode) error {
 			}
 		}
 	}
+	// and remove the old ones from the database
 	for k, v := range oldEpisodes {
 		if v {
 			episodeRef := d.Store.Collection("users").Doc(username).Collection("episodes").Doc(k.Name)
