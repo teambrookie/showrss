@@ -54,6 +54,9 @@ func (b Betaseries) Auth(login, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if err = CatchAPIError(body); err != nil {
+		return "", err
+	}
 	var betaResp betaseriesAuthResp
 	err = json.Unmarshal(body, &betaResp)
 	if err != nil {

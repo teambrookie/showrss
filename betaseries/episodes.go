@@ -3,6 +3,7 @@ package betaseries
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/teambrookie/showrss/dao"
@@ -55,7 +56,7 @@ func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 		return nil, err
 	}
 	req.Header.Add("X-BetaSeries-Version", "2.4")
-	req.Header.Add("X-BetaSeries-Key", b.APIKey)
+	req.Header.Add("X-BetaSeries-Key", "lol")
 	req.Header.Add("X-BetaSeries-Token", token)
 
 	resp, err := client.Do(req)
@@ -64,7 +65,16 @@ func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 	}
 	defer resp.Body.Close()
 	var betaResp betaseriesEpisodesResponse
-	err = json.NewDecoder(resp.Body).Decode(&betaResp)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = CatchAPIError(body); err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &betaResp)
 	if err != nil {
 		return nil, err
 	}
