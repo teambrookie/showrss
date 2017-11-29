@@ -27,8 +27,11 @@ type betaError struct {
 //CatchAPIError parse the JSON send by the Betaseries API and check for error message
 func CatchAPIError(data []byte) error {
 	var apiError betaError
-	json.Unmarshal(data, &apiError)
-	if apiError.Errors[0].Code != 0 {
+	err := json.Unmarshal(data, &apiError)
+	if err != nil {
+		return nil
+	}
+	if apiError.Errors != nil && len(apiError.Errors) > 0 && apiError.Errors[0].Code != 0 {
 		errorText := fmt.Sprintf("Betaseries API Error #%d : %s", apiError.Errors[0].Code, apiError.Errors[0].Text)
 		return errors.New(errorText)
 	}
