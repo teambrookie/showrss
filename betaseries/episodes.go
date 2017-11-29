@@ -56,7 +56,7 @@ func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 		return nil, err
 	}
 	req.Header.Add("X-BetaSeries-Version", "2.4")
-	req.Header.Add("X-BetaSeries-Key", "lol")
+	req.Header.Add("X-BetaSeries-Key", b.APIKey)
 	req.Header.Add("X-BetaSeries-Token", token)
 
 	resp, err := client.Do(req)

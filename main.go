@@ -15,7 +15,6 @@ import (
 	"github.com/teambrookie/showrss/handlers"
 	"github.com/teambrookie/showrss/worker"
 
-	"flag"
 	"syscall"
 
 	"cloud.google.com/go/firestore"
@@ -24,21 +23,22 @@ import (
 const version = "1.0.0"
 
 func main() {
-
-	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
-	flag.Parse()
-
 	//need for querying the Betaseries API
 	apiKey := os.Getenv("BETASERIES_KEY")
 	if apiKey == "" {
 		log.Fatalln("BETASERIES_KEY must be set in env")
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	//small wrapper around the Betaseries API
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
 
 	log.Println("Starting showrss ...")
-	log.Printf("HTTP service listening on %s", *httpAddr)
+	log.Printf("HTTP service listening on port  %s", port)
 
 	//Intialize Firestore client
 	client, err := firestore.NewClient(context.Background(), "showrss-64e4b")
@@ -78,7 +78,7 @@ func main() {
 	mux.Handle("/{user}/rss", handlers.RSSHandler(datastore))
 
 	httpServer := http.Server{}
-	httpServer.Addr = *httpAddr
+	httpServer.Addr = ":" + port
 	httpServer.Handler = handlers.LoggingHandler(mux)
 
 	errChan := make(chan error, 10)
