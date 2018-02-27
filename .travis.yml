@@ -12,25 +12,25 @@ env:
   - PROJECT=showrss
   - PROJECT=movierss
 
-script: go test ./...
-
 before_install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - cd $PROJECT
+
+script: go test ./...
 
 install:
   - dep ensure 
   
 after_success:
   - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $PROJECT .
-  - docker build -t teambrookie/PROJECT .
+  - docker build -t teambrookie/$PROJECT .
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker build -t teambrookie/PROJECT .;
+    docker build -t teambrookie/$PROJECT .;
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-    docker push teambrookie/PROJECT;
+    docker push teambrookie/$PROJECT;
     fi
   - if [ "$TRAVIS_BRANCH" != "master" ]; then
-    docker build -t teambrookie/PROJECT:$TRAVIS_BRANCH .;
+    docker build -t teambrookie/$PROJECT:$TRAVIS_BRANCH .;
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-    docker push teambrookie/PROJECT:$TRAVIS_BRANCH;
+    docker push teambrookie/$PROJECT:$TRAVIS_BRANCH;
     fi

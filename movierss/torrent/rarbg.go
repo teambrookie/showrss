@@ -110,7 +110,7 @@ func Search(movieIMBDID string) (string, error) {
 	}
 	api.Format("json_extended")
 	api.Category(44)
-	api.SearchImDB(movieIMBDID)
+	api.SearchIMDb(movieIMBDID)
 	results, err := api.Search()
 	if err != nil {
 		return "", err
