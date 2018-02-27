@@ -6,24 +6,26 @@ services:
   - docker
 
 go:
-  - 1.8.x
+  - 1.10.x
 
-install:
-  - go get github.com/braintree/manners
-  - go get github.com/qopher/go-torrentapi
-  - go get github.com/boltdb/bolt
-  - go get github.com/gorilla/feeds
+env:
+  - PROJECT=showrss
+  - PROJECT=movierss
+
+script: cd $PROJECT && go test ./...
+
   
 after_success:
-  - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o showrss .
-  - docker build -t teambrookie/showrss .
+  - cd $PROJECT
+  - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $PROJECT .
+  - docker build -t teambrookie/PROJECT .
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker build -t teambrookie/showrss .;
+    docker build -t teambrookie/PROJECT .;
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-    docker push teambrookie/showrss;
+    docker push teambrookie/PROJECT;
     fi
   - if [ "$TRAVIS_BRANCH" != "master" ]; then
-    docker build -t teambrookie/showrss:$TRAVIS_BRANCH .;
+    docker build -t teambrookie/PROJECT:$TRAVIS_BRANCH .;
     docker login -u="$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-    docker push teambrookie/showrss:$TRAVIS_BRANCH;
+    docker push teambrookie/PROJECT:$TRAVIS_BRANCH;
     fi
