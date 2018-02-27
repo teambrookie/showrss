@@ -12,7 +12,7 @@ env:
   - PROJECT=showrss
   - PROJECT=movierss
 
-script: cd $PROJECT && go test ./...
+script: go test ./...
 
 before_install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
