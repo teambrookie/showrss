@@ -14,9 +14,14 @@ env:
 
 script: cd $PROJECT && go test ./...
 
+before_install:
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - cd $PROJECT
+
+install:
+  - dep ensure 
   
 after_success:
-  - cd $PROJECT
   - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $PROJECT .
   - docker build -t teambrookie/PROJECT .
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
