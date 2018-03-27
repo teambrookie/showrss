@@ -12,9 +12,15 @@ import (
 
 // private wrapper around the RssFeed which gives us the <rss>..</rss> xml
 type rssFeedXml struct {
-	XMLName xml.Name `xml:"rss"`
-	Version string   `xml:"version,attr"`
-	Channel *RssFeed
+	XMLName          xml.Name `xml:"rss"`
+	Version          string   `xml:"version,attr"`
+	ContentNamespace string   `xml:"xmlns:content,attr"`
+	Channel          *RssFeed
+}
+
+type RssContent struct {
+	XMLName xml.Name `xml:"content:encoded"`
+	Content string   `xml:",cdata"`
 }
 
 type RssImage struct {
@@ -63,9 +69,10 @@ type RssItem struct {
 	Title       string   `xml:"title"`       // required
 	Link        string   `xml:"link"`        // required
 	Description string   `xml:"description"` // required
-	Author      string   `xml:"author,omitempty"`
-	Category    string   `xml:"category,omitempty"`
-	Comments    string   `xml:"comments,omitempty"`
+	Content     *RssContent
+	Author      string `xml:"author,omitempty"`
+	Category    string `xml:"category,omitempty"`
+	Comments    string `xml:"comments,omitempty"`
 	Enclosure   *RssEnclosure
 	Guid        string `xml:"guid,omitempty"`    // Id used
 	PubDate     string `xml:"pubDate,omitempty"` // created or updated
@@ -92,6 +99,9 @@ func newRssItem(i *Item) *RssItem {
 		Description: i.Description,
 		Guid:        i.Id,
 		PubDate:     anyTimeFormat(time.RFC1123Z, i.Created, i.Updated),
+	}
+	if len(i.Content) > 0 {
+		item.Content = &RssContent{Content: i.Content}
 	}
 	if i.Source != nil {
 		item.Source = i.Source.Href
@@ -150,5 +160,9 @@ func (r *Rss) FeedXml() interface{} {
 
 // return an XML-ready object for an RssFeed object
 func (r *RssFeed) FeedXml() interface{} {
-	return &rssFeedXml{Version: "2.0", Channel: r}
+	return &rssFeedXml{
+		Version:          "2.0",
+		Channel:          r,
+		ContentNamespace: "http://purl.org/rss/1.0/modules/content/",
+	}
 }

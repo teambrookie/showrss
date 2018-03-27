@@ -16,7 +16,7 @@ func goodEnoughTorrent(results torrentapi.TorrentResults) string {
 }
 
 func Search(showID string, episodeCode string, quality string) (string, error) {
-	api, err := torrentapi.Init()
+	api, err := torrentapi.New("SHOWRSS")
 	if err != nil {
 		return "", err
 	}
