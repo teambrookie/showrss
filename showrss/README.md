@@ -36,4 +36,7 @@ curl -X POST --data "username=xxx&password=xxx" http://localhost:8000/auth
 
 ```
 docker run -p 8000:8000 -e BETASERIES_KEY=xxx teambrookie/showrss
+
+
+heroku container:push web --app showrss
 ```
