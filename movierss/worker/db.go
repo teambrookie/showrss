@@ -3,7 +3,7 @@ package worker
 import (
 	"log"
 
-	"github.com/teambrookie/hermes/movierss/dao"
+	"github.com/teambrookie/MediaRSS/movierss/dao"
 )
 
 func DB(in <-chan dao.Movie, store dao.MovieStore) {

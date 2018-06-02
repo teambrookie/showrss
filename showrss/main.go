@@ -9,10 +9,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/teambrookie/hermes/showrss/betaseries"
-	"github.com/teambrookie/hermes/showrss/dao"
-	"github.com/teambrookie/hermes/showrss/handlers"
-	"github.com/teambrookie/hermes/showrss/torrent"
+	"github.com/teambrookie/MediaRSS/showrss/betaseries"
+	"github.com/teambrookie/MediaRSS/showrss/dao"
+	"github.com/teambrookie/MediaRSS/showrss/handlers"
+	"github.com/teambrookie/MediaRSS/showrss/torrent"
 
 	"flag"
 

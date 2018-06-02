@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/teambrookie/hermes/showrss/dao"
+	"github.com/teambrookie/MediaRSS/showrss/dao"
 )
 
 type episodeHandler struct {

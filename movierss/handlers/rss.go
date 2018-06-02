@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/gorilla/feeds"
-	"github.com/teambrookie/hermes/movierss/dao"
-	"github.com/teambrookie/hermes/movierss/trakt"
+	"github.com/teambrookie/MediaRSS/movierss/dao"
+	"github.com/teambrookie/MediaRSS/movierss/trakt"
 )
 
 type rssHandler struct {

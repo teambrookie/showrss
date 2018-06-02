@@ -1,6 +1,6 @@
 package betaseries
 
-import "github.com/teambrookie/hermes/showrss/dao"
+import "github.com/teambrookie/MediaRSS/showrss/dao"
 
 // EpisodeProvider is a generic interface for fetching unseen episodes
 type EpisodeProvider interface {

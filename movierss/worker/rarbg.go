@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/teambrookie/hermes/movierss/dao"
-	"github.com/teambrookie/hermes/movierss/torrent"
+	"github.com/teambrookie/MediaRSS/movierss/dao"
+	"github.com/teambrookie/MediaRSS/movierss/torrent"
 )
 
 const apiRateLimit = 2 * time.Second

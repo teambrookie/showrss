@@ -11,10 +11,10 @@ import (
 
 	"net/http"
 
-	"github.com/teambrookie/hermes/movierss/dao"
-	"github.com/teambrookie/hermes/movierss/handlers"
-	"github.com/teambrookie/hermes/movierss/trakt"
-	"github.com/teambrookie/hermes/movierss/worker"
+	"github.com/teambrookie/MediaRSS/movierss/dao"
+	"github.com/teambrookie/MediaRSS/movierss/handlers"
+	"github.com/teambrookie/MediaRSS/movierss/trakt"
+	"github.com/teambrookie/MediaRSS/movierss/worker"
 )
 
 func main() {

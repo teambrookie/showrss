@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/teambrookie/hermes/movierss/dao"
+	"github.com/teambrookie/MediaRSS/movierss/dao"
 )
 
 type movieHandler struct {
