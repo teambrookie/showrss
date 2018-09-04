@@ -6,20 +6,19 @@ services:
   - docker
 
 go:
-  - 1.10.x
+  - 1.11.x
 
 env:
   - PROJECT=showrss
   - PROJECT=movierss
 
 before_install:
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - cd $PROJECT
 
 script: go test ./...
 
 install:
-  - dep ensure 
+  - go build ./...
   
 after_success:
   - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $PROJECT .
