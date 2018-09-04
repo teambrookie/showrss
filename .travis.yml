@@ -11,6 +11,7 @@ go:
 env:
   - PROJECT=showrss
   - PROJECT=movierss
+  - GO111MODULE=on
 
 before_install:
   - cd $PROJECT
