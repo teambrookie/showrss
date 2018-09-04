@@ -11,15 +11,14 @@ go:
 env:
   - PROJECT=showrss
   - PROJECT=movierss
-  - GO111MODULE=on
 
 before_install:
   - cd $PROJECT
 
-script: go test ./...
+script: GO111MODULE=on go test ./...
 
 install:
-  - go build ./...
+  - GO111MODULE=on go build ./...
   
 after_success:
   - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $PROJECT .
