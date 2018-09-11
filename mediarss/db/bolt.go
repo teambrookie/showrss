@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/boltdb/bolt"
 )
@@ -10,6 +11,12 @@ import (
 type BoltMediaStore struct {
 	db *bolt.DB
 }
+
+//Possible collection for the DB
+const (
+	FOUND    = "FOUND"
+	NOTFOUND = "NOTFOUND"
+)
 
 func createBucket(db *bolt.DB, name string) error {
 	err := db.Update(func(tx *bolt.Tx) error {
@@ -25,10 +32,10 @@ func Open(dbName string) (*BoltMediaStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = createBucket(db, "NOTFOUND"); err != nil {
+	if err = createBucket(db, NOTFOUND); err != nil {
 		return nil, err
 	}
-	if err = createBucket(db, "FOUND"); err != nil {
+	if err = createBucket(db, FOUND); err != nil {
 		return nil, err
 	}
 
@@ -73,7 +80,7 @@ func (store *BoltMediaStore) AddMedia(media Media, collection string) error {
 	err := store.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(collection))
 		if v := b.Get([]byte(media.ID)); v != nil {
-			return nil
+			return errors.New("Media already exists")
 		}
 		encoded, err := json.Marshal(media)
 		if err != nil {
