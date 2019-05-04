@@ -6,14 +6,13 @@ services:
   - docker
 
 go:
-  - 1.8.x
+  - 1.12.x
+
+script: GO111MODULE=on go test ./...
 
 install:
-  - go get github.com/braintree/manners
-  - go get github.com/qopher/go-torrentapi
-  - go get github.com/boltdb/bolt
-  - go get github.com/gorilla/feeds
-  
+  - GO111MODULE=on go build ./...
+
 after_success:
   - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o showrss .
   - docker build -t teambrookie/showrss .
