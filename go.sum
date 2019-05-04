@@ -1,0 +1,6 @@
+github.com/boltdb/bolt v1.3.1 h1:JQmyP4ZBrce+ZQu0dY660FMfatumYDLun9hBCUVIkF4=
+github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
+github.com/gorilla/feeds v1.1.0 h1:pcgLJhbdYgaUESnj3AmXPcB7cS3vy63+jC/TI14AGXk=
+github.com/gorilla/feeds v1.1.0/go.mod h1:Nk0jZrvPFZX1OBe5NPiddPw7CfwF6Q9eqzaBbaightA=
+github.com/qopher/go-torrentapi v0.0.0-20180324211201-2fa27345de9c h1:ntNDTSdwPqj19npORwRgT7mWkpE4qH45ZHKTYSsewvs=
+github.com/qopher/go-torrentapi v0.0.0-20180324211201-2fa27345de9c/go.mod h1:wR+KPghHcIsZhjtWGtCQFSJQni21WkpGuMuahxGNNOA=
