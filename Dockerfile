@@ -7,7 +7,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o showrss .
 
 
 FROM alpine:3.9
-MAINTAINER Fabien Foerster <fabienfoerster@gmail.com>
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /app/showrss /usr/bin/showrss
 ENTRYPOINT ["showrss"]
