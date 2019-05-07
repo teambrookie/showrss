@@ -23,11 +23,11 @@ import (
 
 const version = "1.0.0"
 
-func worker(jobs <-chan dao.Episode, store dao.EpisodeStore) {
+func worker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality string) {
 	for episode := range jobs {
 		time.Sleep(2 * time.Second)
 		log.Println("Processing : " + episode.Name)
-		torrentLink, err := torrent.Search(strconv.Itoa(episode.ShowID), episode.Code, "1080p")
+		torrentLink, err := torrent.Search(strconv.Itoa(episode.ShowID), episode.Code, quality)
 		log.Println("Result : " + torrentLink)
 		if err != nil {
 			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
@@ -56,6 +56,11 @@ func main() {
 		log.Fatalln("BETASERIES_KEY must be set in env")
 	}
 
+	quality := os.Getenv("SHOWRSS_QUALITY")
+	if quality == "" {
+		quality = "720p"
+	}
+
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
 
 	log.Println("Starting server ...")
@@ -76,7 +81,7 @@ func main() {
 	// Worker stuff
 	log.Println("Starting worker ...")
 	jobs := make(chan dao.Episode, 1000)
-	go worker(jobs, store)
+	go worker(jobs, store, quality)
 
 	errChan := make(chan error, 10)
 

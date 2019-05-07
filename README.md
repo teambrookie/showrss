@@ -7,6 +7,11 @@
 
 ShowRSS is a small app that let you ask Betaseries for your unseen episodes and then find the corresponding torrent using RARBG and expose them as an RSS feed.
 
+### Video quality
+
+You can change the default quality (720p) by providing a env variable name *SHOWRSS_QUALITY=1080p*
+
+
 ### Using it
 
 First of all you need a Betaseries Token, you obtain it using the /auth endpoint like this
@@ -26,13 +31,13 @@ And finally what really interest us is the /rss endpoint
 http://yourdomain/rss?token=xxx
 ```
 
-###Testing
+### Testing
 
 ```
 curl -X POST --data "username=xxx&password=xxx" http://localhost:8000/auth
 ```
 
-##Running
+## Running
 
 ```
 docker run -p 8000:8000 -e BETASERIES_KEY=xxx teambrookie/showrss
