@@ -24,7 +24,17 @@ import (
 
 const version = "1.0.0"
 
-func worker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality string) {
+func handleNewAuth(newAuth <-chan string, users map[string]bool, refreshLimiter chan<- time.Time) {
+	for token := range newAuth {
+		if exists := users[token]; !exists {
+			users[token] = true
+			log.Printf("New user token : %s\n", token)
+			refreshLimiter <- time.Now()
+		}
+	}
+}
+
+func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality string) {
 	for episode := range jobs {
 		time.Sleep(2 * time.Second)
 		log.Println("Processing : " + episode.Name)
@@ -47,11 +57,43 @@ func worker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality string) {
 	}
 }
 
+func refresh(limiter <-chan time.Time, users map[string]bool, db dao.EpisodeStore, betaseries betaseries.EpisodeProvider, episodeToSearch chan<- dao.Episode) {
+	for {
+		<-limiter
+		log.Println("Refresh started")
+		for user := range users {
+			log.Printf("Refresing for user %s\n", user)
+			episodes, err := betaseries.Episodes(user)
+			if err != nil {
+				log.Printf("Error retriving episodes for user %s : %s\n", user, err)
+			}
+			for _, ep := range episodes {
+				err := db.AddEpisode(ep)
+				if err != nil {
+					log.Printf("Error adding episodes to database: %s", err)
+				}
+			}
+		}
+		log.Println("Passing not found episodes to the search worker")
+		notFounds, err := db.GetAllNotFoundEpisode()
+		if err != nil {
+			log.Printf("Error retriving unfound episodes from db : %s\n", err)
+		}
+		for _, episode := range notFounds {
+			episodeToSearch <- episode
+		}
+
+	}
+}
+
 func main() {
+
+	//Opitional flag for passing the http server address and the db name
 	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
 	var dbAddr = flag.String("db", "showrss.db", "DB address")
 	flag.Parse()
 
+	//API key and secret for Betaseries are retrieve from the environnement variables
 	apiKey := os.Getenv("BETASERIES_KEY")
 	if apiKey == "" {
 		log.Fatalln("BETASERIES_KEY must be set in env")
@@ -62,6 +104,7 @@ func main() {
 		log.Fatalln("BETASERIES_SECRET must be set in env")
 	}
 
+	// Configuration for the Oauth authentification with Betaseries
 	conf := &oauth2.Config{
 		ClientID:     apiKey,
 		ClientSecret: apiSecret,
@@ -71,6 +114,7 @@ func main() {
 		},
 	}
 
+	// The quality can be specified using an environnement variable
 	quality := os.Getenv("SHOWRSS_QUALITY")
 	if quality == "" {
 		quality = "720p"
@@ -94,17 +138,30 @@ func main() {
 	}
 
 	// Worker stuff
-	log.Println("Starting worker ...")
-	jobs := make(chan dao.Episode, 1000)
-	go worker(jobs, store, quality)
+	// A channel is used to pass the episode that we need to search
+	episodeToSearch := make(chan dao.Episode, 1000)
+	//searchWorker read the episode to search from the channel and if it found them save them in the db
+	go searchWorker(episodeToSearch, store, quality)
+
+	refreshLimiter := make(chan time.Time, 10)
+	go func() {
+		for t := range time.Tick(time.Hour * 1) {
+			refreshLimiter <- t
+		}
+	}()
+
+	// we use a map to store the users because why not (we only store the token for each user si that we can refresh the unseen episodes from Betaseries)
+	users := make(map[string]bool)
+	newAuthChan := make(chan string, 10)
+	go handleNewAuth(newAuthChan, users, refreshLimiter)
+
+	go refresh(refreshLimiter, users, store, episodeProvider, episodeToSearch)
 
 	errChan := make(chan error, 10)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
-
-	mux.Handle("/auth", handlers.OauthHandler(conf))
-	mux.Handle("/refresh", handlers.RefreshHandler(store, episodeProvider, jobs))
+	mux.Handle("/auth", handlers.OauthHandler(conf, newAuthChan))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss", handlers.RSSHandler(store, episodeProvider))
 

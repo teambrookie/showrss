@@ -9,7 +9,8 @@ import (
 )
 
 type oauthHandler struct {
-	conf *oauth2.Config
+	conf        *oauth2.Config
+	newAuthChan chan string
 }
 
 func (h *oauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +23,10 @@ func (h *oauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if the auth if successfull , we notify the newAuthChan channel with the user token
+	// in a perfect world this would be more difficult but Betaseries token don't expire
+	h.newAuthChan <- tok.AccessToken
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tok)
 
@@ -29,6 +34,6 @@ func (h *oauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func OauthHandler(conf *oauth2.Config) http.Handler {
-	return &oauthHandler{conf}
+func OauthHandler(conf *oauth2.Config, newAuthChan chan string) http.Handler {
+	return &oauthHandler{conf, newAuthChan}
 }
