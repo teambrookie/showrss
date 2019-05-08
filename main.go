@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/teambrookie/showrss/betaseries"
 	"github.com/teambrookie/showrss/dao"
 	"github.com/teambrookie/showrss/handlers"
@@ -159,11 +160,11 @@ func main() {
 
 	errChan := make(chan error, 10)
 
-	mux := http.NewServeMux()
+	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.Handle("/auth", handlers.OauthHandler(conf, newAuthChan))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
-	mux.Handle("/rss", handlers.RSSHandler(store, episodeProvider))
+	mux.Handle("/rss/{user}", handlers.RSSHandler(store, episodeProvider))
 
 	httpServer := http.Server{}
 	httpServer.Addr = *httpAddr
