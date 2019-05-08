@@ -13,6 +13,7 @@ import (
 	"github.com/teambrookie/showrss/dao"
 	"github.com/teambrookie/showrss/handlers"
 	"github.com/teambrookie/showrss/torrent"
+	"golang.org/x/oauth2"
 
 	"flag"
 
@@ -56,6 +57,20 @@ func main() {
 		log.Fatalln("BETASERIES_KEY must be set in env")
 	}
 
+	apiSecret := os.Getenv("BETASERIES_SECRET")
+	if apiSecret == "" {
+		log.Fatalln("BETASERIES_SECRET must be set in env")
+	}
+
+	conf := &oauth2.Config{
+		ClientID:     apiKey,
+		ClientSecret: apiSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://www.betaseries.com/authorize",
+			TokenURL: "https://api.betaseries.com/oauth/access_token",
+		},
+	}
+
 	quality := os.Getenv("SHOWRSS_QUALITY")
 	if quality == "" {
 		quality = "720p"
@@ -87,7 +102,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HelloHandler)
-	mux.Handle("/auth", handlers.AuthHandler(episodeProvider))
+
+	mux.Handle("/auth", handlers.OauthHandler(conf))
 	mux.Handle("/refresh", handlers.RefreshHandler(store, episodeProvider, jobs))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss", handlers.RSSHandler(store, episodeProvider))
