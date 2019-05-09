@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -15,11 +16,13 @@ type authCallbackHandler struct {
 
 func (h *authCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	code := r.FormValue("code")
+	log.Printf("The fucking code is : %s", code)
 	tok, err := h.conf.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
+
 	h.newAuthChan <- tok.AccessToken
 
 	redirectURL := fmt.Sprintf("%s/rss/%s", h.host, tok.AccessToken)
