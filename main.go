@@ -104,16 +104,6 @@ func main() {
 		log.Fatalln("BETASERIES_SECRET must be set in env")
 	}
 
-	// Configuration for the Oauth authentification with Betaseries
-	conf := &oauth2.Config{
-		ClientID:     apiKey,
-		ClientSecret: apiSecret,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://www.betaseries.com/authorize",
-			TokenURL: "https://api.betaseries.com/oauth/access_token",
-		},
-	}
-
 	// The quality can be specified using an environnement variable
 	quality := os.Getenv("SHOWRSS_QUALITY")
 	if quality == "" {
@@ -123,6 +113,21 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "7777"
+	}
+
+	hostname, _ := os.Hostname()
+	host := fmt.Sprintf("http://%s:%s", hostname, port)
+	redirectURL := fmt.Sprintf("%s/auth_callback", host)
+
+	// Configuration for the Oauth authentification with Betaseries
+	conf := &oauth2.Config{
+		ClientID:     apiKey,
+		ClientSecret: apiSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://www.betaseries.com/authorize",
+			TokenURL: "https://api.betaseries.com/oauth/access_token",
+		},
+		RedirectURL: redirectURL,
 	}
 
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
@@ -165,15 +170,14 @@ func main() {
 
 	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
-	mux.Handle("/auth", handlers.OauthHandler(conf, newAuthChan))
-
+	mux.Handle("/auth", handlers.OauthHandler(conf))
+	mux.Handle("/auth_callback", handlers.AuthCallbackHandler(conf, newAuthChan, host))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss/{user}", handlers.RSSHandler(store, episodeProvider))
 
 	httpServer := http.Server{}
 	httpServer.Addr = ":" + port
 	httpServer.Handler = handlers.LoggingHandler(mux)
-	hostname, _ := os.Hostname()
 
 	log.Printf("HTTP service listening on http://%s%s", hostname, httpServer.Addr)
 
