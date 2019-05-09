@@ -187,7 +187,7 @@ func main() {
 	httpServer.Addr = ":" + port
 	httpServer.Handler = handlers.LoggingHandler(mux)
 
-	log.Printf("HTTP service listening on http://%s%s", hostname, httpServer.Addr)
+	log.Printf("HTTP service listening on %s", host)
 
 	go func() {
 		errChan <- httpServer.ListenAndServe()
