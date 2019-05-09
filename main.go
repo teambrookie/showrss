@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"time"
@@ -119,13 +120,13 @@ func main() {
 	// must enable runtime-dyno-metadata
 	//with heroku labs:enable runtime-dyno-metadata -a <app name>
 	hostname := os.Getenv("HEROKU_APP_NAME")
-	host := fmt.Sprintf("http://%s.herokuapp.com", hostname)
+	host := fmt.Sprintf("https://%s.herokuapp.com", hostname)
 
 	if hostname == "" {
 		hostname, _ = os.Hostname()
 		host = fmt.Sprintf("http://%s:%s", hostname, port)
 	}
-	redirectURL := fmt.Sprintf("%s/auth_callback", host)
+	redirectURL := url.QueryEscape(fmt.Sprintf("%s/auth_callback", host))
 
 	log.Println(redirectURL)
 
