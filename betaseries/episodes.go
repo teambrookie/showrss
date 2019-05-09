@@ -50,11 +50,11 @@ func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
 // and flatten the result so you have an array of Episode
 func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.betaseries.com/episodes/list", nil)
+	req, err := http.NewRequest("GET", "https://api.betaseries.com/episodes/list?limit=1000", nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("X-BetaSeries-Version", "2.4")
+	req.Header.Add("X-BetaSeries-Version", "3.0")
 	req.Header.Add("X-BetaSeries-Key", b.APIKey)
 	req.Header.Add("X-BetaSeries-Token", token)
 
