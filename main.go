@@ -127,6 +127,8 @@ func main() {
 	}
 	redirectURL := fmt.Sprintf("%s/auth_callback", host)
 
+	log.Println(redirectURL)
+
 	// Configuration for the Oauth authentification with Betaseries
 	conf := &oauth2.Config{
 		ClientID:     apiKey,
