@@ -90,7 +90,6 @@ func refresh(limiter <-chan time.Time, users map[string]bool, db dao.EpisodeStor
 func main() {
 
 	//Opitional flag for passing the http server address and the db name
-	var httpAddr = flag.String("http", "0.0.0.0:8000", "HTTP service address")
 	var dbAddr = flag.String("db", "showrss.db", "DB address")
 	flag.Parse()
 
@@ -121,10 +120,14 @@ func main() {
 		quality = "720p"
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "7777"
+	}
+
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
 
 	log.Println("Starting server ...")
-	log.Printf("HTTP service listening on %s", *httpAddr)
 	log.Println("Connecting to db ...")
 
 	//DB stuff
@@ -163,12 +166,16 @@ func main() {
 	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.Handle("/auth", handlers.OauthHandler(conf, newAuthChan))
+
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss/{user}", handlers.RSSHandler(store, episodeProvider))
 
 	httpServer := http.Server{}
-	httpServer.Addr = *httpAddr
+	httpServer.Addr = ":" + port
 	httpServer.Handler = handlers.LoggingHandler(mux)
+	hostname, _ := os.Hostname()
+
+	log.Printf("HTTP service listening on http://%s%s", hostname, httpServer.Addr)
 
 	go func() {
 		errChan <- httpServer.ListenAndServe()
