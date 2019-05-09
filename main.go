@@ -115,8 +115,16 @@ func main() {
 		port = "7777"
 	}
 
-	hostname, _ := os.Hostname()
-	host := fmt.Sprintf("http://%s:%s", hostname, port)
+	//workaround for Heroku
+	// must enable runtime-dyno-metadata
+	//with heroku labs:enable runtime-dyno-metadata -a <app name>
+	hostname := os.Getenv("HEROKU_APP_NAME")
+	host := fmt.Sprintf("http://%s", hostname)
+
+	if hostname == "" {
+		hostname, _ = os.Hostname()
+		host = fmt.Sprintf("http://%s:%s", hostname, port)
+	}
 	redirectURL := fmt.Sprintf("%s/auth_callback", host)
 
 	// Configuration for the Oauth authentification with Betaseries
