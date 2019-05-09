@@ -119,11 +119,11 @@ func main() {
 	// must enable runtime-dyno-metadata
 	//with heroku labs:enable runtime-dyno-metadata -a <app name>
 	hostname := os.Getenv("HEROKU_APP_NAME")
-	host := fmt.Sprintf("%s.herokuapp.com", hostname)
+	host := fmt.Sprintf("https://%s.herokuapp.com", hostname)
 
 	if hostname == "" {
 		hostname, _ = os.Hostname()
-		host = fmt.Sprintf("%s:%s", hostname, port)
+		host = fmt.Sprintf("http://%s:%s", hostname, port)
 	}
 	redirectURL := fmt.Sprintf("%s/auth_callback", host)
 
