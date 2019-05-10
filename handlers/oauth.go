@@ -7,16 +7,17 @@ import (
 )
 
 type oauthHandler struct {
-	conf *oauth2.Config
+	conf oauth2.Config
 }
 
 func (h *oauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	url := h.conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	http.Redirect(w, r, url, 301)
+	return
 
 }
 
-func OauthHandler(conf *oauth2.Config) http.Handler {
+func OauthHandler(conf oauth2.Config) http.Handler {
 	return &oauthHandler{conf}
 }

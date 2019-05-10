@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"time"
@@ -126,12 +125,12 @@ func main() {
 		hostname, _ = os.Hostname()
 		host = fmt.Sprintf("http://%s:%s", hostname, port)
 	}
-	redirectURL := url.QueryEscape(fmt.Sprintf("%s/auth_callback", host))
+	redirectURL := fmt.Sprintf("%s/auth_callback", host)
 
 	log.Println(redirectURL)
 
 	// Configuration for the Oauth authentification with Betaseries
-	conf := &oauth2.Config{
+	conf := oauth2.Config{
 		ClientID:     apiKey,
 		ClientSecret: apiSecret,
 		Endpoint: oauth2.Endpoint{
@@ -140,6 +139,8 @@ func main() {
 		},
 		RedirectURL: redirectURL,
 	}
+
+	log.Println(conf)
 
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
 
@@ -179,6 +180,7 @@ func main() {
 
 	errChan := make(chan error, 10)
 
+	log.Println("PUTE")
 	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.Handle("/auth", handlers.OauthHandler(conf))
