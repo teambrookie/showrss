@@ -182,7 +182,7 @@ func main() {
 	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.Handle("/auth", handlers.OauthHandler(conf))
-	mux.Handle("/auth_callback", handlers.AuthCallbackHandler(conf, newAuthChan, host))
+	mux.Handle("/auth_callback", handlers.AuthCallbackHandler(conf, newAuthChan))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss/{user}", handlers.RSSHandler(store, episodeProvider))
 

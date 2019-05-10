@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -11,7 +11,6 @@ import (
 type authCallbackHandler struct {
 	conf        *oauth2.Config
 	newAuthChan chan string
-	host        string
 }
 
 func (h *authCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -25,12 +24,12 @@ func (h *authCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	h.newAuthChan <- tok.AccessToken
 
-	redirectURL := fmt.Sprintf("%s/rss/%s", h.host, tok.AccessToken)
-	http.Redirect(w, r, redirectURL, 301)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tok)
 
 	return
 }
 
-func AuthCallbackHandler(conf *oauth2.Config, newAuthChan chan string, host string) http.Handler {
-	return &authCallbackHandler{conf, newAuthChan, host}
+func AuthCallbackHandler(conf *oauth2.Config, newAuthChan chan string) http.Handler {
+	return &authCallbackHandler{conf, newAuthChan}
 }
