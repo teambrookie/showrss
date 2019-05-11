@@ -120,13 +120,18 @@ func main() {
 	// must enable runtime-dyno-metadata
 	//with heroku labs:enable runtime-dyno-metadata -a <app name>
 	hostname := os.Getenv("HEROKU_APP_NAME")
-	host := url.PathEscape(fmt.Sprintf("https://%s.herokuapp.com", hostname))
+	host := fmt.Sprintf("https://%s.herokuapp.com", hostname)
 
 	if hostname == "" {
 		hostname, _ = os.Hostname()
 		host = fmt.Sprintf("http://%s:%s", hostname, port)
 	}
-	redirectURL := fmt.Sprintf("%s/auth_callback", host)
+
+	redirectURL, err := url.Parse(fmt.Sprintf("%s/auth_callback", host))
+	if err != nil {
+		log.Fatalf("Error parsing redirectURL : %s", err)
+	}
+	redirectURLString := redirectURL.String()
 
 	// Configuration for the Oauth authentification with Betaseries
 	conf := oauth2.Config{
@@ -136,7 +141,7 @@ func main() {
 			AuthURL:  "https://www.betaseries.com/authorize",
 			TokenURL: "https://api.betaseries.com/oauth/access_token",
 		},
-		RedirectURL: redirectURL,
+		RedirectURL: redirectURLString,
 	}
 
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
