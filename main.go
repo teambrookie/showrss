@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"time"
@@ -104,16 +105,6 @@ func main() {
 		log.Fatalln("BETASERIES_SECRET must be set in env")
 	}
 
-	// Configuration for the Oauth authentification with Betaseries
-	conf := &oauth2.Config{
-		ClientID:     apiKey,
-		ClientSecret: apiSecret,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://www.betaseries.com/authorize",
-			TokenURL: "https://api.betaseries.com/oauth/access_token",
-		},
-	}
-
 	// The quality can be specified using an environnement variable
 	quality := os.Getenv("SHOWRSS_QUALITY")
 	if quality == "" {
@@ -123,6 +114,34 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "7777"
+	}
+
+	//workaround for Heroku
+	// must enable runtime-dyno-metadata
+	//with heroku labs:enable runtime-dyno-metadata -a <app name>
+	hostname := os.Getenv("HEROKU_APP_NAME")
+	host := fmt.Sprintf("http://%s.herokuapp.com", hostname)
+
+	if hostname == "" {
+		hostname, _ = os.Hostname()
+		host = fmt.Sprintf("http://%s:%s", hostname, port)
+	}
+
+	redirectURL, err := url.Parse(fmt.Sprintf("%s/auth_callback", host))
+	if err != nil {
+		log.Fatalf("Error parsing redirectURL : %s", err)
+	}
+	redirectURLString := redirectURL.String()
+
+	// Configuration for the Oauth authentification with Betaseries
+	conf := oauth2.Config{
+		ClientID:     apiKey,
+		ClientSecret: apiSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://www.betaseries.com/authorize",
+			TokenURL: "https://api.betaseries.com/oauth/access_token",
+		},
+		RedirectURL: redirectURLString,
 	}
 
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
@@ -165,17 +184,16 @@ func main() {
 
 	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
-	mux.Handle("/auth", handlers.OauthHandler(conf, newAuthChan))
-
+	mux.Handle("/auth", handlers.OauthHandler(conf))
+	mux.Handle("/auth_callback", handlers.AuthCallbackHandler(conf, newAuthChan))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss/{user}", handlers.RSSHandler(store, episodeProvider))
 
 	httpServer := http.Server{}
 	httpServer.Addr = ":" + port
 	httpServer.Handler = handlers.LoggingHandler(mux)
-	hostname, _ := os.Hostname()
 
-	log.Printf("HTTP service listening on http://%s%s", hostname, httpServer.Addr)
+	log.Printf("HTTP service listening on %s", host)
 
 	go func() {
 		errChan <- httpServer.ListenAndServe()
