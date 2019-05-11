@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"time"
@@ -119,15 +120,13 @@ func main() {
 	// must enable runtime-dyno-metadata
 	//with heroku labs:enable runtime-dyno-metadata -a <app name>
 	hostname := os.Getenv("HEROKU_APP_NAME")
-	host := fmt.Sprintf("https://%s.herokuapp.com", hostname)
+	host := url.PathEscape(fmt.Sprintf("https://%s.herokuapp.com", hostname))
 
 	if hostname == "" {
 		hostname, _ = os.Hostname()
 		host = fmt.Sprintf("http://%s:%s", hostname, port)
 	}
 	redirectURL := fmt.Sprintf("%s/auth_callback", host)
-
-	log.Println(redirectURL)
 
 	// Configuration for the Oauth authentification with Betaseries
 	conf := oauth2.Config{
@@ -139,8 +138,6 @@ func main() {
 		},
 		RedirectURL: redirectURL,
 	}
-
-	log.Println(conf)
 
 	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
 
@@ -180,7 +177,6 @@ func main() {
 
 	errChan := make(chan error, 10)
 
-	log.Println("PUTE")
 	mux := mux.NewRouter()
 	mux.HandleFunc("/", handlers.HelloHandler)
 	mux.Handle("/auth", handlers.OauthHandler(conf))
