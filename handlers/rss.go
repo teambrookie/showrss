@@ -35,6 +35,7 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	episodes, err := h.episodeProvider.Episodes(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	for _, ep := range episodes {
 		episode, err := h.store.GetEpisode(ep.Name)
