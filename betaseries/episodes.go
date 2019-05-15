@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/teambrookie/showrss/dao"
 )
@@ -50,10 +52,13 @@ func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
 // and flatten the result so you have an array of Episode
 func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.betaseries.com/episodes/list?limit=1000", nil)
+	req, err := http.NewRequest("GET", "https://api.betaseries.com/episodes/list", nil)
 	if err != nil {
 		return nil, err
 	}
+	queryParams := url.Values{}
+	queryParams.Set("limit", strconv.Itoa(b.LimitPerShow))
+	req.Form = queryParams
 	req.Header.Add("X-BetaSeries-Version", "3.0")
 	req.Header.Add("X-BetaSeries-Key", b.APIKey)
 	req.Header.Add("X-BetaSeries-Token", token)

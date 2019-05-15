@@ -116,6 +116,17 @@ func main() {
 		port = "7777"
 	}
 
+	//The refreshInterval is expressed in minutes
+	refreshInterval, err := strconv.Atoi(os.Getenv("SHOWRSS_REFRESH_TIME"))
+	if refreshInterval == 0 || err != nil {
+		refreshInterval = 60
+	}
+
+	limitPerShow, err := strconv.Atoi(os.Getenv("SHOWRSS_EP_PER_SHOW"))
+	if limitPerShow == 0 || err != nil {
+		limitPerShow = 100
+	}
+
 	//workaround for Heroku
 	// must enable runtime-dyno-metadata
 	//with heroku labs:enable runtime-dyno-metadata -a <app name>
@@ -144,10 +155,12 @@ func main() {
 		RedirectURL: redirectURLString,
 	}
 
-	episodeProvider := betaseries.Betaseries{APIKey: apiKey}
+	episodeProvider := betaseries.Betaseries{APIKey: apiKey, LimitPerShow: limitPerShow}
 
-	log.Println("Starting server ...")
-	log.Println("Connecting to db ...")
+	log.Println("Starting SHOWRSS ...")
+	log.Printf("Refresh interval set to %v minutes\n", refreshInterval)
+	log.Printf("Betaserie episodes per show limit set to %v \n", limitPerShow)
+	log.Printf("Default quality : %s", quality)
 
 	//DB stuff
 	store, err := dao.InitDB(*dbAddr)
@@ -168,7 +181,7 @@ func main() {
 
 	refreshLimiter := make(chan time.Time, 10)
 	go func() {
-		for t := range time.Tick(time.Hour * 1) {
+		for t := range time.Tick(time.Duration(refreshInterval) * time.Hour) {
 			refreshLimiter <- t
 		}
 	}()
