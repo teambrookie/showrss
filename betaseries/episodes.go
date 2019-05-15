@@ -39,6 +39,8 @@ func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
 			if unseen.User.Downloaded == false {
 				episode := dao.Episode{}
 				episode.Name = fmt.Sprintf("%s S%02dE%02d", unseen.Show.Title, unseen.Season, unseen.Episode)
+				episode.Season = unseen.Season
+				episode.Episode = unseen.Episode
 				episode.Code = unseen.Code
 				episode.ShowID = unseen.Show.TheTVDBID
 				episodes = append(episodes, episode)

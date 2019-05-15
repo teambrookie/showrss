@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"regexp"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -49,6 +50,7 @@ func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality strin
 		if torrentLink == "" {
 			continue
 		}
+		episode.Filename = getFilename(torrentLink)
 		episode.MagnetLink = torrentLink
 		episode.LastModified = time.Now()
 		err = store.UpdateEpisode(episode)
@@ -57,6 +59,12 @@ func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality strin
 		}
 
 	}
+}
+
+func getFilename(magnetLink string) string {
+	regex := "dn=(.+)%5B.+%5D"
+	r, _ := regexp.Compile(regex)
+	return r.FindStringSubmatch(magnetLink)[1]
 }
 
 func refresh(limiter <-chan time.Time, users map[string]bool, db dao.EpisodeStore, betaseries betaseries.EpisodeProvider, episodeToSearch chan<- dao.Episode) {
@@ -165,12 +173,7 @@ func main() {
 	//DB stuff
 	store, err := dao.InitDB(*dbAddr)
 	if err != nil {
-		log.Fatalln("Error connecting to DB")
-	}
-
-	err = store.CreateBucket("episodes")
-	if err != nil {
-		log.Fatalln("Error when creating bucket")
+		log.Fatalln("Error initializing to DB")
 	}
 
 	// Worker stuff
@@ -201,6 +204,7 @@ func main() {
 	mux.Handle("/auth_callback", handlers.AuthCallbackHandler(conf, newAuthChan))
 	mux.Handle("/episodes", handlers.EpisodeHandler(store))
 	mux.Handle("/rss/{user}", handlers.RSSHandler(store, episodeProvider))
+	mux.Handle("/info/{filename}", handlers.InfoHandler(store))
 
 	httpServer := http.Server{}
 	httpServer.Addr = ":" + port
