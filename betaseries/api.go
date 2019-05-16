@@ -10,5 +10,6 @@ type EpisodeProvider interface {
 
 // Betaseries is a struct that will implement the EpisodeProvider interface
 type Betaseries struct {
-	APIKey string
+	APIKey       string
+	LimitPerShow int
 }

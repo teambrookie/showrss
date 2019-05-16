@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/teambrookie/showrss/dao"
 )
@@ -37,6 +39,8 @@ func transformResponse(resp betaseriesEpisodesResponse) []dao.Episode {
 			if unseen.User.Downloaded == false {
 				episode := dao.Episode{}
 				episode.Name = fmt.Sprintf("%s S%02dE%02d", unseen.Show.Title, unseen.Season, unseen.Episode)
+				episode.Season = unseen.Season
+				episode.Episode = unseen.Episode
 				episode.Code = unseen.Code
 				episode.ShowID = unseen.Show.TheTVDBID
 				episodes = append(episodes, episode)
@@ -54,7 +58,10 @@ func (b Betaseries) Episodes(token string) ([]dao.Episode, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("X-BetaSeries-Version", "2.4")
+	queryParams := url.Values{}
+	queryParams.Set("limit", strconv.Itoa(b.LimitPerShow))
+	req.Form = queryParams
+	req.Header.Add("X-BetaSeries-Version", "3.0")
 	req.Header.Add("X-BetaSeries-Key", b.APIKey)
 	req.Header.Add("X-BetaSeries-Token", token)
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/gorilla/feeds"
+	"github.com/gorilla/mux"
 	"github.com/teambrookie/showrss/betaseries"
 	"github.com/teambrookie/showrss/dao"
 )
@@ -17,7 +18,7 @@ type rssHandler struct {
 }
 
 func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
+	token := mux.Vars(r)["user"]
 	if token == "" {
 		http.Error(w, "token must be set in query params", http.StatusNotAcceptable)
 		return
@@ -34,6 +35,7 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	episodes, err := h.episodeProvider.Episodes(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	for _, ep := range episodes {
 		episode, err := h.store.GetEpisode(ep.Name)
