@@ -7,38 +7,48 @@
 
 ShowRSS is a small app that let you ask Betaseries for your unseen episodes and then find the corresponding torrent using RARBG and expose them as an RSS feed.
 
-### Video quality
+### How to run it
 
-You can change the default quality (720p) by providing a env variable name *SHOWRSS_QUALITY=1080p*
+```docker
+docker run -p xxx:xxx -e PORT=xxx -e BETASERIES_KEY=xxx -e BETASERIES_SECRET=xxx teambrookie/showrss
+```
+
+### Additionnal environnement variables
+
+- SHOWRSS_QUALITY=xxx (default is 720p)
+- SHOWRSS_REFRESH_TIME=xxx (in minutes,default is 60)
+- SHOWRSS_EP_PER_SHOW=xxx (default is 48)
 
 
 ### Using it
 
-First of all you need a Betaseries Token, you obtain it using the /auth endpoint like this
-```
-curl -X POST --data "username=xxx&password=xxx" http://localhost:8000/auth
-```
-Note: the username and password are send using x-www-urlencoded
+The authentification with Betaseries is using Oauth. You call the endpoint */auth*, it will redirect you to Betaseries to authentificate. And then if it's successful will redirect you to /rss/{user_token} so you can access your RSS feed.
 
-Then they are the /refresh endpoint, it's role is to refresh the unseen episode and to refresh the torrent. They are use like this :
-```
-http://yourdomain/refresh?action=episode&token=xxx
-http://yourdomain/refresh?action=torrent
-```
+The search for new unseen episodes and torrents is done automatically. It will start when you authentificate and then will occurs every 60 minutes ( if you haven't change the default)
 
-And finally what really interest us is the /rss endpoint
-```
-http://yourdomain/rss?token=xxx
-```
 
-### Testing
+### Endpoint
 
-```
-curl -X POST --data "username=xxx&password=xxx" http://localhost:8000/auth
+- /auth -> authentificate you with Betaseries
+- /rss/{user_token} -> return your rss feed
+- /info/{filename} -> return all the info given a filename
+
+### Examples
+
+```http
+http://yourdomain.com/info/Modern.Family.S10E01.iNTERNAL.720p.WEB.x264-BAMBOOZLE
 ```
 
-## Running
-
-```
-docker run -p 8000:8000 -e BETASERIES_KEY=xxx teambrookie/showrss
+will return you the following
+```json
+{
+  "name": "Modern.Family.S10E01",
+  "season": 10,
+  "episode": 1,
+  "code": "S10E01",
+  "show_id": 000,
+  "magnet_link": "xxx",
+  "filename": "Modern.Family.S10E01.iNTERNAL.720p.WEB.x264-BAMBOOZLE",
+  "last_modified": "xxx"
+}
 ```

@@ -132,7 +132,7 @@ func main() {
 
 	limitPerShow, err := strconv.Atoi(os.Getenv("SHOWRSS_EP_PER_SHOW"))
 	if limitPerShow == 0 || err != nil {
-		limitPerShow = 100
+		limitPerShow = 48
 	}
 
 	//workaround for Heroku
