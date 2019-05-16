@@ -62,7 +62,7 @@ func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality strin
 }
 
 func getFilename(magnetLink string) string {
-	regex := "dn=(.+)%5B.+%5D"
+	regex := "dn=([^&%]+)"
 	r, _ := regexp.Compile(regex)
 	return r.FindStringSubmatch(magnetLink)[1]
 }
