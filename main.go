@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"regexp"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -38,20 +37,36 @@ func handleNewAuth(newAuth <-chan string, users map[string]bool, refreshLimiter 
 }
 
 func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality string) {
+	var lastTorrent torrent.Torrent
 	for episode := range jobs {
-		time.Sleep(2 * time.Second)
 		log.Println("Processing : " + episode.Name)
-		torrentLink, err := torrent.Search(strconv.Itoa(episode.ShowID), episode.Code, quality)
-		log.Println("Result : " + torrentLink)
+		//Yolo mode activated
+		if (lastTorrent != torrent.Torrent{}) && lastTorrent.TorrentType == "season" && lastTorrent.ShowID == episode.ShowID && lastTorrent.Season == episode.Season {
+			log.Println("Result : " + lastTorrent.Name)
+			episode.Filename = lastTorrent.Filename
+			episode.MagnetLink = lastTorrent.MagnetLink
+			episode.LastModified = time.Now()
+			err := store.UpdateEpisode(episode)
+			if err != nil {
+				log.Printf("Error saving %s to DB ...\n", episode.Name)
+			}
+			continue
+		}
+
+		time.Sleep(2 * time.Second)
+
+		torrent, err := torrent.Search(episode, quality)
+		log.Println("Result : " + torrent.Name)
 		if err != nil {
 			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
 			continue
 		}
-		if torrentLink == "" {
+		lastTorrent = torrent
+		if torrent.MagnetLink == "" {
 			continue
 		}
-		episode.Filename = getFilename(torrentLink)
-		episode.MagnetLink = torrentLink
+		episode.Filename = torrent.Filename
+		episode.MagnetLink = torrent.MagnetLink
 		episode.LastModified = time.Now()
 		err = store.UpdateEpisode(episode)
 		if err != nil {
@@ -59,12 +74,6 @@ func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality strin
 		}
 
 	}
-}
-
-func getFilename(magnetLink string) string {
-	regex := "dn=([^&%]+)"
-	r, _ := regexp.Compile(regex)
-	return r.FindStringSubmatch(magnetLink)[1]
 }
 
 func refresh(limiter <-chan time.Time, users map[string]bool, db dao.EpisodeStore, betaseries betaseries.EpisodeProvider, episodeToSearch chan<- dao.Episode) {
