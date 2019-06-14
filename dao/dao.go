@@ -25,6 +25,7 @@ type Episode struct {
 	Code         string    `json:"code"`
 	ShowID       int       `json:"show_id"`
 	MagnetLink   string    `json:"magnet_link"`
+	TorrentURL   string    `json:"torrent_url"`
 	Filename     string    `json:"filename"`
 	LastModified time.Time `json:"last_modified"`
 }

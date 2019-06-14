@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/qopher/go-torrentapi"
 	"github.com/teambrookie/showrss/dao"
@@ -14,6 +15,7 @@ type Torrent struct {
 	Name        string
 	Filename    string
 	MagnetLink  string
+	TorrentURL  string
 	TorrentType string
 	ShowID      int
 	Season      int
@@ -57,12 +59,18 @@ func searchEpisode(episode dao.Episode, quality string) (Torrent, error) {
 		torrent.Name = tr.Title
 		torrent.Filename = getFilename(tr.Download)
 		torrent.MagnetLink = tr.Download
+		torrent.TorrentURL = fmt.Sprintf("http://itorrents.org/torrent/%s.torrent", extractHashFromMagnet(tr.Download))
 		torrent.TorrentType = "episode"
 		torrent.ShowID = episode.ShowID
 		torrent.Season = episode.Season
 	}
 	return torrent, nil
 
+}
+
+func extractHashFromMagnet(magnet string) string {
+	r, _ := regexp.Compile("urn:btih:([^&]+)")
+	return strings.ToUpper(r.FindStringSubmatch(magnet)[1])
 }
 
 func matchEpisode(name string) bool {
@@ -105,6 +113,7 @@ func searchSeason(episode dao.Episode, quality string) (Torrent, error) {
 		torrent.Name = tr.Title
 		torrent.Filename = getFilename(tr.Download)
 		torrent.MagnetLink = tr.Download
+		torrent.TorrentURL = fmt.Sprintf("http://itorrents.org/torrent/%s.torrent", extractHashFromMagnet(tr.Download))
 		torrent.TorrentType = "season"
 		torrent.ShowID = episode.ShowID
 		torrent.Season = episode.Season

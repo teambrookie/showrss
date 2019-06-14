@@ -45,6 +45,7 @@ func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality strin
 			log.Println("Result : " + lastTorrent.Name)
 			episode.Filename = lastTorrent.Filename
 			episode.MagnetLink = lastTorrent.MagnetLink
+			episode.TorrentURL = lastTorrent.TorrentURL
 			episode.LastModified = time.Now()
 			err := store.UpdateEpisode(episode)
 			if err != nil {
@@ -67,6 +68,7 @@ func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality strin
 		}
 		episode.Filename = torrent.Filename
 		episode.MagnetLink = torrent.MagnetLink
+		episode.TorrentURL = torrent.TorrentURL
 		episode.LastModified = time.Now()
 		err = store.UpdateEpisode(episode)
 		if err != nil {

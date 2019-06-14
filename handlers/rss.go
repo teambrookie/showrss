@@ -42,10 +42,10 @@ func (h *rssHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if episode.MagnetLink == "" || err != nil {
 			continue
 		}
-		description := fmt.Sprintf("<a href='%s'>MagnetLink</a>", episode.MagnetLink)
+		description := fmt.Sprintf("<a href='%s'>MagnetLink</a>", episode.TorrentURL)
 		item := &feeds.Item{
 			Title:       episode.Name,
-			Link:        &feeds.Link{Href: episode.MagnetLink},
+			Link:        &feeds.Link{Href: episode.TorrentURL},
 			Description: description,
 			Created:     episode.LastModified,
 		}
