@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,7 +38,7 @@ func handleNewAuth(newAuth <-chan string, users map[string]bool, refreshLimiter 
 	}
 }
 
-func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality string) {
+func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, config torrent.Config) {
 	var lastTorrent torrent.Torrent
 	for episode := range jobs {
 		log.Println("Processing : " + episode.Name)
@@ -56,7 +58,7 @@ func searchWorker(jobs <-chan dao.Episode, store dao.EpisodeStore, quality strin
 
 		time.Sleep(2 * time.Second)
 
-		torrent, err := torrent.Search(episode, quality)
+		torrent, err := torrent.Search(episode, config)
 		log.Println("Result : " + torrent.Name)
 		if err != nil {
 			log.Printf("Error processing %s : %s ...\n", episode.Name, err)
@@ -107,6 +109,33 @@ func refresh(limiter <-chan time.Time, users map[string]bool, db dao.EpisodeStor
 	}
 }
 
+func loadConfig() (torrent.Config, error) {
+	configURL := os.Getenv("SHOWRSS_CONFIGURL")
+	config := torrent.Config{}
+	if configURL != "" {
+		resp, err := http.Get(configURL)
+		if err != nil {
+			return torrent.Config{}, err
+		}
+		err = json.NewDecoder(resp.Body).Decode(&config)
+		if err != nil {
+			return torrent.Config{}, err
+		}
+		return config, nil
+	}
+	configPath := os.Getenv("SHOWRSS_CONFIGPATH")
+	if configPath == "" {
+		configPath = "./config.json"
+	}
+	data, _ := os.Open(configPath)
+	err := json.NewDecoder(bufio.NewReader(data)).Decode(&config)
+	if err != nil {
+		return torrent.Config{}, err
+	}
+	return config, nil
+
+}
+
 func main() {
 
 	//Opitional flag for passing the http server address and the db name
@@ -133,6 +162,11 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "7777"
+	}
+
+	config, err := loadConfig()
+	if err != nil {
+		log.Fatalf("Error loading the config: %s", err)
 	}
 
 	//The refreshInterval is expressed in minutes
@@ -191,7 +225,7 @@ func main() {
 	// A channel is used to pass the episode that we need to search
 	episodeToSearch := make(chan dao.Episode, 1000)
 	//searchWorker read the episode to search from the channel and if it found them save them in the db
-	go searchWorker(episodeToSearch, store, quality)
+	go searchWorker(episodeToSearch, store, config)
 
 	refreshLimiter := make(chan time.Time, 10)
 	go func() {

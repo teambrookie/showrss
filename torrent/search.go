@@ -21,13 +21,28 @@ type Torrent struct {
 	Season      int
 }
 
-func goodEnoughTorrent(results torrentapi.TorrentResults) torrentapi.TorrentResult {
-	for _, t := range results {
-		if t.Seeders > 0 || t.Leechers > 0 {
-			return t
+func bestTorrent(torrents torrentapi.TorrentResults) torrentapi.TorrentResult {
+	bt := torrentapi.TorrentResult{}
+	for _, t := range torrents {
+		if (bt == torrentapi.TorrentResult{}) {
+			bt = t
+			continue
+		}
+		if (t.Seeders / (1 + t.Leechers)) > (bt.Seeders / (1 + bt.Leechers)) {
+			bt = t
 		}
 	}
-	return torrentapi.TorrentResult{}
+	return bt
+}
+
+func filterOutDeadTorrents(torrents torrentapi.TorrentResults) torrentapi.TorrentResults {
+	var res torrentapi.TorrentResults
+	for _, t := range torrents {
+		if t.Seeders > 0 || t.Leechers > 0 {
+			res = append(res, t)
+		}
+	}
+	return res
 }
 
 func getFilename(magnetLink string) string {
@@ -36,24 +51,26 @@ func getFilename(magnetLink string) string {
 	return r.FindStringSubmatch(magnetLink)[1]
 }
 
-func searchEpisode(episode dao.Episode, quality string) (Torrent, error) {
+func searchEpisode(episode dao.Episode, config Config) (Torrent, error) {
 	api, err := torrentapi.New("SHOWRSS")
 	if err != nil {
 		return Torrent{}, err
 	}
-	searchString := fmt.Sprintf("%s %s", episode.Code, quality)
+	searchString := episode.Code
 	api.Format("json_extended")
 	api.SearchTVDB(strconv.Itoa(episode.ShowID))
 	api.SearchString(searchString)
-	results, err := api.Search()
+	torrents, err := api.Search()
 	if err != nil {
 		return Torrent{}, err
 	}
 
-	if len(results) == 0 {
+	if len(torrents) == 0 {
 		return Torrent{}, nil
 	}
-	tr := goodEnoughTorrent(results)
+	torrents = filterOutDeadTorrents(torrents)
+	torrents = Filter(config.Categories, torrents)
+	tr := bestTorrent(torrents)
 	torrent := Torrent{}
 	if (tr != torrentapi.TorrentResult{}) {
 		torrent.Name = tr.Title
@@ -89,12 +106,12 @@ func filterFullSeasonTorrent(torrents torrentapi.TorrentResults) torrentapi.Torr
 	return fullSeasonTorrents
 }
 
-func searchSeason(episode dao.Episode, quality string) (Torrent, error) {
+func searchSeason(episode dao.Episode, config Config) (Torrent, error) {
 	api, err := torrentapi.New("SHOWRSS")
 	if err != nil {
 		return Torrent{}, err
 	}
-	searchString := fmt.Sprintf("S%02d %s", episode.Season, quality)
+	searchString := fmt.Sprintf("S%02d", episode.Season)
 	api.Format("json_extended")
 	api.SearchTVDB(strconv.Itoa(episode.ShowID))
 	api.SearchString(searchString)
@@ -107,7 +124,9 @@ func searchSeason(episode dao.Episode, quality string) (Torrent, error) {
 	}
 
 	torrents := filterFullSeasonTorrent(results)
-	tr := goodEnoughTorrent(torrents)
+	torrents = filterOutDeadTorrents(torrents)
+	torrents = Filter(config.Categories, torrents)
+	tr := bestTorrent(torrents)
 	torrent := Torrent{}
 	if (tr != torrentapi.TorrentResult{}) {
 		torrent.Name = tr.Title
@@ -122,10 +141,10 @@ func searchSeason(episode dao.Episode, quality string) (Torrent, error) {
 
 }
 
-func Search(episode dao.Episode, quality string) (Torrent, error) {
+func Search(episode dao.Episode, config Config) (Torrent, error) {
 
 	log.Println("Searching Season")
-	result, err := searchSeason(episode, quality)
+	result, err := searchSeason(episode, config)
 	if err != nil {
 		return Torrent{}, nil
 	}
@@ -134,7 +153,7 @@ func Search(episode dao.Episode, quality string) (Torrent, error) {
 	}
 
 	log.Println("Searching Episode")
-	result, err = searchEpisode(episode, quality)
+	result, err = searchEpisode(episode, config)
 	if err != nil {
 		return Torrent{}, err
 	}

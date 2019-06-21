@@ -1,0 +1,25 @@
+{
+    "categories" : [
+        {   "name": "HDR",
+            "type" : "include",
+            "optionnal": true,
+            "keywords": ["HDR"]
+        },
+        {   "name": "KILLER",
+            "type" : "exclude",
+            "optionnal": true,
+            "keywords": ["KILLERS"]
+        },
+        {   "name": "Video Quality",
+            "type" : "include",
+            "optionnal": false,
+            "keywords": ["720p","1080p"]
+        }
+    ]
+
+
+    
+
+
+       
+}
