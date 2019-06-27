@@ -56,8 +56,8 @@ func TestFilterCat(t *testing.T) {
 		torrentapi.TorrentResult{Download: "yolo.mkv"},
 	}
 
-	results, err := filterCat(cat, torrents)
-	if err != nil || !reflect.DeepEqual(results, expected) {
+	results := filterCat(cat, torrents)
+	if !reflect.DeepEqual(results, expected) {
 		t.Log(results)
 		t.Fatalf("filter cat fail")
 
@@ -74,21 +74,19 @@ func TestFilterCatOptionnal(t *testing.T) {
 
 	expected := torrents
 
-	results, err := filterCat(cat, torrents)
-	if err != nil || !reflect.DeepEqual(results, expected) {
+	results := filterCat(cat, torrents)
+	if !reflect.DeepEqual(results, expected) {
 		t.Log(results)
 		t.Fatalf("filter cat fail")
 
 	}
 }
 
-
 func TestFilter(t *testing.T) {
 	cats := []Category{}
-	cats = append(cats,Category{Type: "include", Optionnal: false, Keywords: []string{"mkv", "mp4"}})
-	cats = append(cats,Category{Type: "exclude", Optionnal: true, Keywords: []string{"serie"}})
-	cats = append(cats,Category{Type: "include", Optionnal: false, Keywords: []string{"720p","1080p","4K"}})
-	
+	cats = append(cats, Category{Type: "include", Optionnal: false, Keywords: []string{"mkv", "mp4"}})
+	cats = append(cats, Category{Type: "exclude", Optionnal: true, Keywords: []string{"serie"}})
+	cats = append(cats, Category{Type: "include", Optionnal: false, Keywords: []string{"720p", "1080p", "4K"}})
 
 	var torrents = torrentapi.TorrentResults{
 		torrentapi.TorrentResult{Download: "serie.One.720p.mp4"},
@@ -104,8 +102,8 @@ func TestFilter(t *testing.T) {
 		torrentapi.TorrentResult{Download: "serie.Cinco.720p.mkv"},
 	}
 
-	results,err := Filter(cats,torrents)
-	if err != nil || !reflect.DeepEqual(expected,results) {
+	results := Filter(cats, torrents)
+	if !reflect.DeepEqual(expected, results) {
 		t.Log(results)
 		t.Fatalf("Filter fail")
 	}
